@@ -1,4 +1,22 @@
+# Settings in the [build] context are global and are applied to
+# all contexts unless otherwise overridden by more specific contexts.
+[build]
+  command = "CI= npm run build"
+  publish = "/build"
+  base ="/"
+#  command = "CI= npm run build-webpack"
+#  publish = "/dist"
+#  base ="/"
+
+# The following redirect is intended for use with most SPAs
+# that handle routing internally.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Define which paths this specific [[headers]] block will cover.
+# [[headers]]
+#   for = "/*"
+#     [headers.values]
+#     Access-Control-Allow-Origin = "*"
