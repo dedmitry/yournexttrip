@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { GenerateSW } = require("workbox-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = (env = {}) => {
   const isDev = env.development === true;
@@ -75,6 +76,20 @@ module.exports = (env = {}) => {
         template: "./public/index.html",
         favicon: "./public/favicon.ico",
       }),
+
+            new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: "public",
+            to: ".",
+            globOptions: {
+              ignore: ["**/index.html"],
+            },
+          },
+        ],
+      }),
+
+      
       ...(isDev
         ? []
         : [
