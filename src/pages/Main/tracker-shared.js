@@ -184,7 +184,25 @@ export function Sheet({ onClose, children }) {
 
 export function Nav({ left, center, right }) {
   return (
-    <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 48px",background:"rgba(245,245,240,.9)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(0,0,0,.07)"}}>
+    <nav
+  style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: window.innerWidth <= 768
+      ? "18px 24px"
+      : "18px 48px",
+    background: "rgba(245,245,240,.9)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    borderBottom: "1px solid rgba(0,0,0,.07)"
+  }}
+>
       <div style={{minWidth:120}}>{left}</div>
       <div style={{fontFamily:LOGO,fontSize:18,fontWeight:700,letterSpacing:"-.4px",color:C.ink}}>{center}</div>
       <div style={{minWidth:120,display:"flex",justifyContent:"flex-end"}}>{right}</div>

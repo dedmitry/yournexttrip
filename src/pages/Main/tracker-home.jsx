@@ -64,7 +64,16 @@ export default function TrackerHome({ cats, setCats, logs, setLogs, onOpen }) {
       />
 
       {/* Hero */}
-      <div style={{position:"relative",overflow:"hidden",padding:"120px 0 60px",textAlign:"center"}}>
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          padding: window.innerWidth <= 768
+            ? "120px 0 40px"
+            : "120px 0 60px",
+          textAlign: "center"
+        }}
+      >
         <div style={{position:"absolute",width:500,height:500,borderRadius:"50%",filter:"blur(80px)",opacity:.28,background:C.blue,  top:-160,right:-100,pointerEvents:"none"}} />
         <div style={{position:"absolute",width:380,height:380,borderRadius:"50%",filter:"blur(80px)",opacity:.28,background:C.orange,bottom:-100,left:-80, pointerEvents:"none"}} />
         <div style={{position:"absolute",width:260,height:260,borderRadius:"50%",filter:"blur(80px)",opacity:.15,background:C.green, top:"50%",left:"50%",transform:"translate(-50%,-50%)",pointerEvents:"none"}} />
@@ -84,7 +93,7 @@ export default function TrackerHome({ cats, setCats, logs, setLogs, onOpen }) {
       {cats.length > 0 && (
         <div style={{maxWidth:1080,margin:"0 auto",width:"100%",padding:"0 24px"}}>
           <h2 style={{fontFamily:LOGO,fontSize:18,fontWeight:700,letterSpacing:"-.5px",lineHeight:1.1,color:C.ink,marginBottom:20,marginTop:24}}>My tracks</h2>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14, marginBottom: 24}}>
             {cats.map(cat => {
               const latest    = getLatest(logs, cat.id);
               const latestSub = latest ? cat.subcategories?.find(s=>s.id===latest.subcategoryId) : null;
