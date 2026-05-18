@@ -1,6 +1,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { GenerateSW } = require("workbox-webpack-plugin");
 
 module.exports = (env = {}) => {
   const isDev = env.development === true;
