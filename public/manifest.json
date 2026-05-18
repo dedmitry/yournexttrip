@@ -2,7 +2,7 @@
   "name": "TrackThisNow",
   "short_name": "TrackThisNow",
   "description": "Trackanything. Anytime.",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#0A84FF",
   "theme_color": "#2563eb",
