@@ -1,11 +1,11 @@
 {
-  "name": "TrackThisNow",
-  "short_name": "TrackThisNow",
-  "description": "Trackanything. Anytime.",
+  "name": "YourNextTrip",
+  "short_name": "YourNextTrip",
+  "description": "Your next trip, planned perfectly.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A84FF",
-  "theme_color": "#2563eb",
+  "theme_color": "#FF7A1A",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "favicon-16x16.png",   "sizes": "16x16",   "type": "image/png" },
