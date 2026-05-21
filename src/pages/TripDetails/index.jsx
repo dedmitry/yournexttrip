@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 
@@ -10,63 +10,21 @@ import { getTrip, saveTrip } from "@utils/storage";
 import { t, STOP_TYPE_CONFIG } from "@lib/config";
 
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-/*const STOP_CONFIG = {
-  transport: { label: "Transport",  icon: "✈", dotColor: "#85B7EB", badgeBg: "#E6F1FB", badgeText: "#0C447C", iconBg: "#E6F1FB", iconColor: "#0C447C" },
-  hotel:     { label: "Hotel",      icon: "⌂", dotColor: "#AFA9EC", badgeBg: "#EEEDFE", badgeText: "#3C3489", iconBg: "#EEEDFE", iconColor: "#3C3489" },
-  place:     { label: "Place",      icon: "◎", dotColor: "#97C459", badgeBg: "#EAF3DE", badgeText: "#27500A", iconBg: "#EAF3DE", iconColor: "#27500A" },
-  food:      { label: "Restaurant", icon: "⊕", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
-};*/
-
-const DAY_LABELS = {
-  1: "Day 1 · Wed Sep 3 — Arrival & Shinjuku",
-  2: "Day 2 · Thu Sep 4 — Asakusa, TeamLab & Shibuya",
-  3: "Day 3 · Fri Sep 5 — Kyoto day trip",
-  4: "Day 4 · Sat Sep 6 — Kyoto temples & return",
-  5: "Day 5 · Sun Sep 7 — Markets, Akihabara & departure",
-};
-
-const INITIAL_META = {
-  title: "Tokyo Explorer",
-  flag: "🗼",
-  region: "Asia · Japan",
-  dates: "Sep 3 – 8, 2025",
-  days: 5,
-  cities: "Tokyo + Kyoto",
-  travelers: 2,
-  budget: "¥180,000 (~$1,200 USD) per person",
-  wifiNote: "Pocket WiFi pre-ordered · pick up at NRT arrival hall",
-  transitNote: "IC Suica card recommended for all metro and transit in Tokyo",
-};
-
-const INITIAL_STOPS = [
-  { id: 1,  day: 1, type: "transport", name: "Flight JFK → NRT",          detail: "Japan Airlines JL006 · Economy",     time: "Sep 3 · 11:00",    duration: "14h 5m",  travelNext: "50 min · Narita Express",  budget: "$1,200", link: "https://maps.app.goo.gl/JFK", notes: "Check-in 3h before. Gate 32B. Seats 34A & 34B." },
-  { id: 2,  day: 1, type: "hotel",     name: "Shinjuku Granbell Hotel",    detail: "2-14-5 Kabukicho, Shinjuku-ku",     time: "Sep 3 · check-in", duration: "5 nights",travelNext: "5 min · walk",              budget: "$180/night", link: "https://maps.app.goo.gl/GranbellHotel", notes: "Early check-in requested. High-floor city view room." },
-  { id: 3,  day: 1, type: "food",      name: "Ichiran Ramen",              detail: "3-34-11 Shinjuku, Tokyo",           time: "Sep 3 · 21:00",    duration: "45 min",  travelNext: "10 min · walk",             budget: "$12", link: "https://maps.app.goo.gl/IchiranShinjuku", notes: "Solo booth ramen — iconic first-night meal. No reservation needed." },
-  { id: 4,  day: 1, type: "place",     name: "Kabukicho Neon Walk",        detail: "Kabukicho, Shinjuku",               time: "Sep 3 · 22:00",    duration: "1h",      travelNext: "",                          budget: "Free", link: "https://maps.app.goo.gl/Kabukicho", notes: "Electric nightlife streets. Safe area for tourists." },
-  { id: 5,  day: 2, type: "place",     name: "Senso-ji Temple",            detail: "2-3-1 Asakusa, Taito-ku",           time: "Sep 4 · 07:30",    duration: "1h 30m",  travelNext: "3 min · walk",              budget: "Free", link: "https://maps.app.goo.gl/Sensoji", notes: "Go early to beat the crowds. Buy an omamori (lucky charm)." },
-  { id: 6,  day: 2, type: "food",      name: "Asakusa Imahan",             detail: "1-3-12 Nishi-Asakusa, Taito",       time: "Sep 4 · 09:30",    duration: "1h",      travelNext: "25 min · metro",            budget: "$45", link: "https://maps.app.goo.gl/AsakusaImahan", notes: "Famous wagyu beef sukiyaki. Worth it for brunch." },
-  { id: 7,  day: 2, type: "place",     name: "teamLab Borderless",         detail: "Azabudai Hills, Minato-ku",         time: "Sep 4 · 12:00",    duration: "2h 30m",  travelNext: "15 min · metro",            budget: "$32", link: "https://teamlabborderless.com", notes: "Pre-booked tickets required. No cameras inside." },
-  { id: 8,  day: 2, type: "place",     name: "Shibuya Crossing",           detail: "Shibuya, Tokyo",                    time: "Sep 4 · 17:00",    duration: "1h",      travelNext: "8 min · walk",              budget: "Free", link: "https://maps.app.goo.gl/ShibuyaCrossing", notes: "Starbucks 2nd floor balcony for the best view." },
-  { id: 9,  day: 2, type: "food",      name: "Sushi Saito",                detail: "1-9-15 Akasaka, Minato-ku",         time: "Sep 4 · 19:30",    duration: "1h 30m",  travelNext: "20 min · taxi",             budget: "$180", link: "https://maps.app.goo.gl/SushiSaito", notes: "Omakase reservation confirmed. No phones allowed inside." },
-  { id: 10, day: 3, type: "transport", name: "Shinkansen to Kyoto",        detail: "Nozomi 11 · Reserved car 5",        time: "Sep 5 · 08:15",    duration: "2h 15m",  travelNext: "20 min · taxi",             budget: "$120", link: "https://shinkansen.co.jp", notes: "Buy tickets at Shinkansen office the day before." },
-  { id: 11, day: 3, type: "place",     name: "Fushimi Inari Shrine",       detail: "68 Fukakusa Yabunouchicho, Fushimi",time: "Sep 5 · 11:30",    duration: "2h",      travelNext: "30 min · bus",              budget: "$5", link: "https://maps.app.goo.gl/FushimiInari", notes: "Hike all the way to the top for fewer crowds and great views." },
-  { id: 12, day: 3, type: "place",     name: "Arashiyama Bamboo Grove",    detail: "Sagaogurayama, Ukyo-ku",            time: "Sep 5 · 15:00",    duration: "1h 30m",  travelNext: "10 min · rickshaw",         budget: "$45", link: "https://maps.app.goo.gl/Arashiyama", notes: "Hire a rickshaw for ¥5,000 to explore in style." },
-  { id: 13, day: 3, type: "food",      name: "Kikunoi Honten",             detail: "459 Shimokawara-cho, Higashiyama",  time: "Sep 5 · 19:00",    duration: "2h",      travelNext: "15 min · taxi",             budget: "$220", link: "https://maps.app.goo.gl/Kikunoi", notes: "Traditional kaiseki dinner. 3-Michelin stars. Smart casual." },
-  { id: 14, day: 4, type: "place",     name: "Kinkaku-ji Golden Pavilion", detail: "1 Kinkakujicho, Kita-ku, Kyoto",   time: "Sep 6 · 08:00",    duration: "1h",      travelNext: "20 min · bus",              budget: "$5", link: "https://maps.app.goo.gl/Kinkakuji", notes: "Arrive just before 9AM opening. Beautiful just after sunrise." },
-  { id: 15, day: 4, type: "place",     name: "Nishiki Market",             detail: "Nakagyo-ku, Kyoto",                 time: "Sep 6 · 10:30",    duration: "1h 30m",  travelNext: "8 min · walk",              budget: "Free", link: "https://maps.app.goo.gl/NishikiMarket", notes: "Try yudofu, pickled vegetables, and fresh mochi." },
-  { id: 16, day: 4, type: "food",      name: "Honke Owariya",              detail: "322 Niomon-cho, Kamigyo-ku",        time: "Sep 6 · 13:00",    duration: "1h",      travelNext: "2h 10m · Shinkansen",       budget: "$28", link: "https://maps.app.goo.gl/HonkeOwariya", notes: "Oldest soba restaurant in Kyoto (est. 1465). Order hourai soba." },
-  { id: 17, day: 4, type: "transport", name: "Shinkansen back to Tokyo",   detail: "Hikari 522 · Reserved car 7",       time: "Sep 6 · 15:30",    duration: "2h 30m",  travelNext: "30 min · metro",            budget: "$95", link: "https://shinkansen.co.jp", notes: "" },
-  { id: 18, day: 4, type: "food",      name: "Gonpachi Nishi-Azabu",       detail: "1-13-11 Nishi-Azabu, Minato-ku",   time: "Sep 6 · 20:00",    duration: "2h",      travelNext: "15 min · metro",            budget: "$60", link: "https://maps.app.goo.gl/Gonpachi", notes: "The restaurant that inspired Kill Bill Vol. 1. Great yakitori." },
-  { id: 19, day: 5, type: "place",     name: "Tsukiji Outer Market",       detail: "4-16-2 Tsukiji, Chuo-ku",           time: "Sep 7 · 07:00",    duration: "1h 30m",  travelNext: "10 min · walk",             budget: "$25", link: "https://maps.app.goo.gl/Tsukiji", notes: "Best tuna sashimi breakfast. Go early before stalls sell out." },
-  { id: 20, day: 5, type: "place",     name: "teamLab Planets",            detail: "6-1-16 Toyosu, Koto-ku",            time: "Sep 7 · 11:00",    duration: "2h",      travelNext: "25 min · metro",            budget: "$32", link: "https://teamlabplanets.dmm.com", notes: "Different from Borderless. Go barefoot — art you walk through." },
-  { id: 21, day: 5, type: "place",     name: "Akihabara Electric Town",    detail: "Akihabara, Chiyoda-ku",             time: "Sep 7 · 14:30",    duration: "2h",      travelNext: "5 min · walk",              budget: "$80", link: "https://maps.app.goo.gl/Akihabara", notes: "Last chance for electronics, anime, and retro game shopping." },
-  { id: 22, day: 5, type: "food",      name: "Narikura Tempura",           detail: "2-11-9 Sotokanda, Chiyoda-ku",      time: "Sep 7 · 18:00",    duration: "1h 30m",  travelNext: "40 min · Narita Express",   budget: "$150", link: "https://maps.app.goo.gl/Narikura", notes: "Best tempura omakase in Tokyo. 8-seat counter. Booking essential." },
-  { id: 23, day: 5, type: "transport", name: "Flight NRT → JFK",           detail: "Japan Airlines JL005 · Economy",    time: "Sep 8 · 09:55",    duration: "13h 45m", travelNext: "",                          budget: "$1,100", link: "https://maps.app.goo.gl/NRT", notes: "Allow 3h for airport — Narita is large. Print boarding pass in hotel." },
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getDayLabel(day, dateFrom) {
+  try {
+    const start = new Date(dateFrom);
+    if (isNaN(start.getTime())) throw new Error();
+    const d = new Date(start);
+    d.setDate(start.getDate() + (day - 1));
+    const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+    const month   = d.toLocaleDateString("en-US", { month: "short" });
+    return `Day ${day} · ${weekday} ${month} ${d.getDate()}`;
+  } catch {
+    return `Day ${day}`;
+  }
+}
 
 function countByType(stops) {
     return stops.reduce(
@@ -152,6 +110,16 @@ function TripHeaderCard({ meta, stops, onTitleChange }) {
               fontSize: 16, flexShrink: 0,
             }}>{meta.flag}</div>
             <span style={{ fontSize: 13, color: t.textMuted }}>{meta.region}</span>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="3" width="16" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M4 10H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M8 17L6 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M16 17L18 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="8.5" cy="13.5" r="1.5" fill="currentColor"/>
+  <circle cx="15.5" cy="13.5" r="1.5" fill="currentColor"/>
+  <path d="M8 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M16 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
           </div>
           <input
             value={meta.title}
@@ -200,173 +168,204 @@ function TripHeaderCard({ meta, stops, onTitleChange }) {
 //  STOP CARD
 // ════════════════════════════════════════════════════════════════════════════
 
-function StopCard({ stop, isOpen, isLast, onToggle, onSave, onDelete, onMoveUp, onMoveDown }) {
-  const cfg = STOP_TYPE_CONFIG[stop.type];
-  const [draft, setDraft] = useState(stop);
-  if (!isOpen && JSON.stringify(draft) !== JSON.stringify(stop)) setDraft(stop);
+function StopCard({ 
+    stop, 
+    isOpen, 
+    isLast, 
+    onToggle, 
+    onSave, 
+    onDelete, 
+    onMoveUp, 
+    onMoveDown 
+}) {
+    const cfg = STOP_TYPE_CONFIG[stop.type];
+    //const [draft, setDraft] = useState(stop);
+    //if (!isOpen && JSON.stringify(draft) !== JSON.stringify(stop)) setDraft(stop);
 
-  const handleToggle = () => { if (isOpen) setDraft(stop); onToggle(); };
+    //const handleToggle = () => { if (isOpen) setDraft(stop); onToggle(); };
+    const handleToggle = onToggle;
 
-  const iconBtn = (label, title, action, danger = false) => (
-    <button
-      key={title} onClick={action} title={title} aria-label={title}
-      style={{
-        width: 24, height: 24, borderRadius: 6,
-        border: `0.5px solid ${t.border}`, background: "transparent",
-        cursor: "pointer", color: t.textMuted,
-        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12,
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget;
-        el.style.background = danger ? "#FCEBEB" : t.bgSecondary;
-        el.style.color = danger ? "#A32D2D" : t.text;
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget;
-        el.style.background = "transparent";
-        el.style.color = t.textMuted;
-      }}
-    >{label}</button>
-  );
+    const iconBtn = (label, title, action, danger = false) => (
+        <button
+            key={title} onClick={action} title={title} aria-label={title}
+            style={{
+                width: 24, height: 24, borderRadius: 6,
+                border: `0.5px solid ${t.border}`, background: "transparent",
+                cursor: "pointer", color: t.textMuted,
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12,
+            }}
+            onMouseEnter={(e) => {
+                const el = e.currentTarget;
+                el.style.background = danger ? "#FCEBEB" : t.bgSecondary;
+                el.style.color = danger ? "#A32D2D" : t.text;
+            }}
+            onMouseLeave={(e) => {
+                const el = e.currentTarget;
+                el.style.background = "transparent";
+                el.style.color = t.textMuted;
+            }}
+        >{label}</button>
+    );
 
-  return (
-    <div style={{ display: "flex", gap: 0, position: "relative" }}>
-      {/* Gutter */}
-      <div className="stop-gutter" style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 11 }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: "50%",
-          background: cfg.iconBg, color: cfg.iconColor,
-          border: `1.5px solid ${cfg.dotColor}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, flexShrink: 0, zIndex: 1,
-        }}>{cfg.icon}</div>
-        {!isLast && <div style={{ width: 1, background: t.border, flex: 1, minHeight: 8 }} />}
-      </div>
-
-      {/* Card body */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          background: t.bg,
-          border: `0.5px solid ${isOpen ? t.borderHeavy : t.border}`,
-          borderRadius: t.radiusMd, overflow: "hidden", transition: "border-color .15s",
-        }}>
-          {/* Row */}
-          <div onClick={handleToggle} style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: "10px 12px", cursor: "pointer", userSelect: "none",
-          }}>
-
-            {/* Left: badge / name / detail */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center",
-                borderRadius: 20, padding: "2px 9px", fontSize: 11, fontWeight: 500,
-                background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap", marginBottom: 4,
-              }}>{cfg.label}</span>
-              <div style={{ fontSize: 14, fontWeight: 500, color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stop.name}</div>
-              <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.detail}</div>
-            </div>
-
-            {/* Right: time / chips / actions */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
-              <span style={{ fontSize: 12, color: t.textHint, whiteSpace: "nowrap" }}>{stop.time}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                {stop.duration && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: t.textMuted, background: t.bgSecondary, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>⏱ {stop.duration}</span>
-                )}
-                {stop.budget && (
-                  <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{stop.budget}</span>
-                )}
-                {stop.link && (
-                  <a href={stop.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} title="Open link" style={{
-                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    border: `0.5px solid ${t.border}`, background: t.bgSecondary,
+    return (
+        <div style={{ display: "flex", gap: 0, position: "relative" }}>
+            {/* Gutter */}
+            <div 
+                className="stop-gutter" 
+                style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 11 }}
+            >
+                <div style={{
+                    width: 30, height: 30, borderRadius: "50%",
+                    background: cfg.iconBg, color: cfg.iconColor,
+                    border: `1.5px solid ${cfg.dotColor}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, color: t.textMuted, textDecoration: "none",
-                  }}>↗</a>
-                )}
-              </div>
-              <div style={{ display: "flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
-                {iconBtn("↑", "Move up",   onMoveUp)}
-                {iconBtn("↓", "Move down", onMoveDown)}
-                {iconBtn("×", "Delete",    onDelete, true)}
-              </div>
+                    fontSize: 13, flexShrink: 0, zIndex: 1,
+                }}>{cfg.icon}</div>
+                {!isLast && <div style={{ width: 1, background: t.border, flex: 1, minHeight: 8 }} />}
             </div>
 
-            <span className="stop-chevron" style={{ fontSize: 13, color: t.textHint, marginLeft: 2, flexShrink: 0, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s" }}>⌄</span>
-          </div>
-
-          {/* Edit form */}
-          {isOpen && (
-            <div style={{ borderTop: `0.5px solid ${t.border}`, padding: "12px 14px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
-                <Field label="Type">
-                  <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })} style={inputStyle}>
-                    <option value="transport">Transport</option>
-                    <option value="hotel">Hotel</option>
-                    <option value="place">Place</option>
-                    <option value="food">Restaurant</option>
-                  </select>
-                </Field>
-                <Field label="Date / time">
-                  <input value={draft.time} onChange={(e) => setDraft({ ...draft, time: e.target.value })} style={inputStyle} placeholder="Sep 3 · 11:00" />
-                </Field>
-              </div>
-              <Field label="Name" style={{ marginBottom: 9 }}>
-                <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} style={inputStyle} />
-              </Field>
-              <Field label="Address / details" style={{ marginBottom: 9 }}>
-                <input value={draft.detail} onChange={(e) => setDraft({ ...draft, detail: e.target.value })} style={inputStyle} />
-              </Field>
-              <div style={{ marginBottom: 9 }}>
-                <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>Link (maps / info)</label>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <input
-                    value={draft.link}
-                    onChange={(e) => setDraft({ ...draft, link: e.target.value })}
-                    style={{ ...inputStyle, flex: 1 }}
-                    placeholder="https://…"
-                  />
-                  <a
-                    href={draft.link || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Open link"
+            {/* Card body */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                    background: t.bg,
+                    border: `0.5px solid ${isOpen ? t.borderHeavy : t.border}`,
+                    borderRadius: t.radiusMd, overflow: "hidden", transition: "border-color .15s",
+                }}>
+                {/* Row */}
+                <div 
+                    onClick={handleToggle} 
                     style={{
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      width: 36, flexShrink: 0, borderRadius: t.radiusSm,
-                      border: `0.5px solid ${draft.link ? t.borderMd : t.border}`,
-                      background: draft.link ? t.text : t.bgSecondary,
-                      color: draft.link ? t.bg : t.textHint,
-                      fontSize: 13, textDecoration: "none",
-                      pointerEvents: draft.link ? "auto" : "none",
-                      transition: "background .15s, color .15s",
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "10px 12px", cursor: "pointer", userSelect: "none",
                     }}
-                  >↗</a>
+                >
+
+                    {/* Left: badge / name / detail */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{
+                            display: "inline-flex", alignItems: "center",
+                            borderRadius: 20, padding: "2px 9px", fontSize: 11, fontWeight: 500,
+                            background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap", marginBottom: 4,
+                        }}>{cfg.label}</span>
+                        <div style={{ fontSize: 14, fontWeight: 500, color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stop.name}</div>
+                        <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.detail}</div>
+                    </div>
+
+                    {/* Right: time / chips / actions */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <span style={{ fontSize: 12, color: t.textHint, whiteSpace: "nowrap" }}>
+                                {stop.time}
+                            </span>
+                            <span 
+                                className="stop-chevron" 
+                                style={{
+                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                    width: 16, height: 16, flexShrink: 0,
+                                    transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s",
+                                }}
+                            >
+                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 1L5 5L9 1" stroke={t.textHint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            {stop.duration && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: t.textMuted, background: t.bgSecondary, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>⏱ {stop.duration}</span>
+                            )}
+                            {stop.budget && (
+                            <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{stop.budget}</span>
+                            )}
+                            {stop.link && (
+                            <a href={stop.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} title="Open link" style={{
+                                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                border: `0.5px solid ${t.border}`, background: t.bgSecondary,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 11, color: t.textMuted, textDecoration: "none",
+                            }}>↗</a>
+                            )}
+                        </div>
+                        <div style={{ display: "flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
+                            {iconBtn("↑", "Move up",   onMoveUp)}
+                            {iconBtn("↓", "Move down", onMoveDown)}
+                            {iconBtn("×", "Delete",    onDelete, true)}
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
-                <Field label="Budget / cost">
-                  <input value={draft.budget} onChange={(e) => setDraft({ ...draft, budget: e.target.value })} style={inputStyle} placeholder="e.g. $45 or Free" />
-                </Field>
-                <Field label="Duration">
-                  <input value={draft.duration} onChange={(e) => setDraft({ ...draft, duration: e.target.value })} style={inputStyle} placeholder="e.g. 2h 30m" />
-                </Field>
-              </div>
-              <Field label="Notes">
-                <textarea value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
-                  style={{ ...inputStyle, resize: "vertical", minHeight: 52 }} placeholder="Any extra info…" />
-              </Field>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
-                <button onClick={handleToggle} style={cancelBtnStyle}>Cancel</button>
-                <button onClick={() => onSave(draft)} style={saveBtnStyle}>Save changes</button>
-              </div>
+
+                {/* Edit form */}
+                {isOpen && (
+                    <div style={{ borderTop: `0.5px solid ${t.border}`, padding: "12px 14px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
+                            <Field label="Type">
+                                <select value={stop.type} onChange={(e) => onSave({ ...stop, type: e.target.value })} style={inputStyle}>
+                                    <option value="transport">Transport</option>
+                                    <option value="hotel">Hotel</option>
+                                    <option value="place">Place</option>
+                                    <option value="food">Restaurant</option>
+                                </select>
+                            </Field>
+                            <Field label="Time">
+                                <input 
+                                    type="time"
+                                    value={stop.time} 
+                                    onChange={(e) => onSave({ ...stop, time: e.target.value })} 
+                                    style={inputStyle} placeholder="Sep 3 · 11:00" 
+                                />
+                            </Field>
+                        </div>
+                        <Field label="Name" style={{ marginBottom: 9 }}>
+                            <input value={stop.name} onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
+                        </Field>
+                        <Field label="Address / details" style={{ marginBottom: 9 }}>
+                            <input value={stop.detail} onChange={(e) => onSave({ ...stop, detail: e.target.value })} style={inputStyle} />
+                        </Field>
+                        <div style={{ marginBottom: 9 }}>
+                            <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>Link (maps / info)</label>
+                            <div style={{ display: "flex", gap: 6 }}>
+                            <input
+                                value={stop.link}
+                                onChange={(e) => onSave({ ...stop, link: e.target.value })}
+                                style={{ ...inputStyle, flex: 1 }}
+                                placeholder="https://…"
+                            />
+                            <a
+                                href={stop.link || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Open link"
+                                style={{
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                width: 36, flexShrink: 0, borderRadius: t.radiusSm,
+                                border: `0.5px solid ${stop.link ? t.borderMd : t.border}`,
+                                background: stop.link ? t.text : t.bgSecondary,
+                                color: stop.link ? t.bg : t.textHint,
+                                fontSize: 13, textDecoration: "none",
+                                pointerEvents: stop.link ? "auto" : "none",
+                                transition: "background .15s, color .15s",
+                                }}
+                            >↗</a>
+                            </div>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
+                            <Field label="Budget / cost">
+                            <input value={stop.budget} onChange={(e) => onSave({ ...stop, budget: e.target.value })} style={inputStyle} placeholder="e.g. $45 or Free" />
+                            </Field>
+                            <Field label="Duration">
+                            <input value={stop.duration} onChange={(e) => onSave({ ...stop, duration: e.target.value })} style={inputStyle} placeholder="e.g. 2h 30m" />
+                            </Field>
+                        </div>
+                        <Field label="Notes">
+                            <textarea value={stop.notes} onChange={(e) => onSave({ ...stop, notes: e.target.value })}
+                            style={{ ...inputStyle, resize: "vertical", minHeight: 52 }} placeholder="Any extra info…" />
+                        </Field>
+                    </div>
+                )}
+                </div>
             </div>
-          )}
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -416,29 +415,31 @@ function TransitRow({ stop, onSave }) {
 //  DAY DIVIDER
 // ════════════════════════════════════════════════════════════════════════════
 
-function DayDivider({ day, isCurrent }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "14px 0 10px" }}>
-      <div style={{ flex: 1, height: isCurrent ? 1 : 0.5, background: isCurrent ? "#378ADD" : t.border }} />
-      <span style={{
-        fontSize: 11, fontWeight: isCurrent ? 500 : 400,
-        whiteSpace: "nowrap", borderRadius: 20, padding: "4px 12px",
-        background: isCurrent ? "#378ADD" : t.bgSecondary,
-        color: isCurrent ? "#ffffff" : t.textMuted,
-        border: isCurrent ? "none" : `0.5px solid ${t.border}`,
-        display: "inline-flex", alignItems: "center", gap: 6,
-      }}>
-        {isCurrent ? "▶" : "☀"} {DAY_LABELS[day] ?? `Day ${day}`}
-        {isCurrent && (
-          <span style={{
-            fontSize: 10, background: "rgba(255,255,255,0.25)",
-            borderRadius: 20, padding: "1px 7px", marginLeft: 2,
-          }}>Today</span>
-        )}
-      </span>
-      <div style={{ flex: 1, height: isCurrent ? 1 : 0.5, background: isCurrent ? "#378ADD" : t.border }} />
-    </div>
-  );
+function DayDivider({ day, isCurrent, dateFrom }) {
+    const displayLabel = getDayLabel(day, dateFrom ?? "");
+
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "14px 0 10px" }}>
+            <div style={{ flex: 1, height: isCurrent ? 1 : 0.5, background: isCurrent ? "#378ADD" : t.border }} />
+                <span style={{
+                    fontSize: 11, fontWeight: isCurrent ? 500 : 400,
+                    whiteSpace: "nowrap", borderRadius: 20, padding: "4px 12px",
+                    background: isCurrent ? "#378ADD" : t.bgSecondary,
+                    color: isCurrent ? "#ffffff" : t.textMuted,
+                    border: isCurrent ? "none" : `0.5px solid ${t.border}`,
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                }}>
+                    {isCurrent ? "▶" : "☀"} {displayLabel}
+                    {isCurrent && (
+                    <span style={{
+                        fontSize: 10, background: "rgba(255,255,255,0.25)",
+                        borderRadius: 20, padding: "1px 7px", marginLeft: 2,
+                    }}>Today</span>
+                    )}
+                </span>
+            <div style={{ flex: 1, height: isCurrent ? 1 : 0.5, background: isCurrent ? "#378ADD" : t.border }} />
+        </div>
+    );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -480,21 +481,75 @@ function AddBar({ onAdd, targetDay, compact }) {
 //  TRIP PLANNER (internal logic)
 // ════════════════════════════════════════════════════════════════════════════
 
-function TripPlanner() {
-	const [meta, setMeta] = useState(INITIAL_META);
-	const [stops, setStops] = useState(INITIAL_STOPS);
+function TripPlanner({trip}) {
+	const [meta, setMeta] = useState(trip.meta);
+	const [stops, setStops] = useState(trip.stops);
 	const [openId, setOpenId] = useState(null);
-	const [nextId, setNextId] = useState(INITIAL_STOPS.length + 1);
+	const [nextId, setNextId] = useState(trip.stops.length + 1);
 
 	const toggleOpen = (id) => setOpenId((prev) => (prev === id ? null : id));
 
+
+    // Debounced save — waits 600ms after last change
+    const saveTimeout = useRef(null);
+
+    useEffect(() => {
+        return () => clearTimeout(saveTimeout.current);
+    }, []);
+
+
+    const debouncedSave = useCallback((updatedStops, updatedMeta) => {
+        clearTimeout(saveTimeout.current);
+        saveTimeout.current = setTimeout(() => {
+            saveTrip({ id: trip.id, meta: updatedMeta, stops: updatedStops });
+        }, 600);
+    }, [trip.id]);
+
+    const updateMeta = (updatedMeta) => {
+        setMeta(updatedMeta);
+        debouncedSave(stops, updatedMeta);
+    };
+
 	const updateStop = (updated) => {
-		setStops((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-		setOpenId(null);
+        setStops((prev) => {
+            const next = prev.map((s) => (s.id === updated.id ? updated : s));
+            debouncedSave(next, meta);
+            return next;
+        });
+		//setStops((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+		//setOpenId(null);
+	};
+
+
+	const addStop = (type, targetDay) => {
+		const day = targetDay ?? (stops.length > 0 ? stops[stops.length - 1].day : 1);
+		const id = nextId;
+		setNextId((n) => n + 1);
+		const cfg = STOP_TYPE_CONFIG[type];
+		const newStop = { id, day, type, name: `New ${cfg.label.toLowerCase()}`, detail: "", time: "", duration: "", travelNext: "", budget: "", link: "", notes: "" };
+		/*setStops((prev) => {
+		// Insert after the last stop of the target day
+		const lastIdx = prev.map((s, i) => s.day === day ? i : -1).filter(i => i >= 0).pop();
+		if (lastIdx === undefined) return [...prev, newStop];
+		const arr = [...prev];
+		arr.splice(lastIdx + 1, 0, newStop);
+		return arr;
+		});*/
+        setStops((prev) => {
+            const next = [...prev, newStop];
+            saveTrip({ id: trip.id, meta, stops: next }); // immediate
+            return next;
+        });
+		setOpenId(id);
 	};
 
 	const deleteStop = (id) => {
-		setStops((prev) => prev.filter((s) => s.id !== id));
+        setStops((prev) => {
+            const next = prev.filter((s) => s.id !== id);
+            saveTrip({ id: trip.id, meta, stops: next }); // immediate
+            return next;
+        });
+		//setStops((prev) => prev.filter((s) => s.id !== id));
 		if (openId === id) setOpenId(null);
 	};
 
@@ -505,6 +560,7 @@ function TripPlanner() {
 		if (next < 0 || next >= prev.length) return prev;
 		const arr = [...prev];
 		[arr[idx], arr[next]] = [arr[next], arr[idx]];
+        saveTrip({ id: tripId, meta, stops: arr });
 		return arr;
 		});
 	};
@@ -512,26 +568,15 @@ function TripPlanner() {
 	const updateTransit = (id, travelNext) =>
 		setStops((prev) => prev.map((s) => (s.id === id ? { ...s, travelNext } : s)));
 
-	const addStop = (type, targetDay) => {
-		const day = targetDay ?? (stops.length > 0 ? stops[stops.length - 1].day : 1);
-		const id = nextId;
-		setNextId((n) => n + 1);
-		const cfg = STOP_TYPE_CONFIG[type];
-		const newStop = { id, day, type, name: `New ${cfg.label.toLowerCase()}`, detail: "", time: "", duration: "", travelNext: "", budget: "", link: "", notes: "" };
-		setStops((prev) => {
-		// Insert after the last stop of the target day
-		const lastIdx = prev.map((s, i) => s.day === day ? i : -1).filter(i => i >= 0).pop();
-		if (lastIdx === undefined) return [...prev, newStop];
-		const arr = [...prev];
-		arr.splice(lastIdx + 1, 0, newStop);
-		return arr;
-		});
-		setOpenId(id);
-	};
 
-	const days = [...new Set(stops.map((s) => s.day))].sort();
+
+
+	const maxDay = stops.length > 0 
+        ? Math.max(...stops.map((s) => s.day)) 
+        : 1;
+	const days = Array.from({ length: maxDay }, (_, i) => i + 1);
 	const currentDay = 3;
-	const maxDay = days.length > 0 ? Math.max(...days) : 0;
+
 
 	const addDay = () => {
 		const newDay = maxDay + 1;
@@ -546,13 +591,18 @@ function TripPlanner() {
 
 	return (
 		<div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 12px 40px" }}>
-			<TripHeaderCard meta={meta} stops={stops} onTitleChange={(v) => setMeta({ ...meta, title: v })} />
+			<TripHeaderCard 
+                meta={meta} 
+                stops={stops} 
+                onTitleChange={(v) => setMeta({ ...meta, title: v })} 
+            />
 
 			{days.map((day) => {
 				const dayStops = stops.filter((s) => s.day === day);
 				return (
 				<div key={day}>
-					<DayDivider day={day} isCurrent={day === currentDay} />
+					<DayDivider day={day} isCurrent={day === currentDay} dateFrom={meta.dateFrom} />
+
 					{dayStops.map((stop) => {
 					const globalIdx = stops.findIndex((s) => s.id === stop.id);
 					const isLastInTrip = globalIdx === stops.length - 1;
@@ -571,31 +621,30 @@ function TripPlanner() {
 						</div>
 					);
 					})}
+
 					<AddBar onAdd={addStop} targetDay={day} compact />
 				</div>
 				);
 			})}
 
-			<AddBar onAdd={addStop} />
-
 			{/* Add day */}
 			<button
 				onClick={addDay}
 				style={{
-				display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-				width: "100%", marginTop: 8, padding: "9px 12px",
-				background: "transparent", border: `0.5px dashed ${t.borderMd}`,
-				borderRadius: t.radiusMd, cursor: "pointer", fontFamily: "inherit",
-				fontSize: 13, color: t.textMuted,
-				transition: "background .12s, color .12s",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    width: "100%", marginTop: 8, padding: "9px 12px",
+                    background: "transparent", border: `0.5px dashed ${t.borderMd}`,
+                    borderRadius: t.radiusMd, cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 13, color: t.textMuted,
+                    transition: "background .12s, color .12s",
 				}}
 				onMouseEnter={(e) => {
-				(e.currentTarget).style.background = t.bgSecondary;
-				(e.currentTarget).style.color = t.text;
+                    (e.currentTarget).style.background = t.bgSecondary;
+                    (e.currentTarget).style.color = t.text;
 				}}
 				onMouseLeave={(e) => {
-				(e.currentTarget).style.background = "transparent";
-				(e.currentTarget).style.color = t.textMuted;
+                    (e.currentTarget).style.background = "transparent";
+                    (e.currentTarget).style.color = t.textMuted;
 				}}
 			>
 				+ Add day {maxDay + 1}
@@ -610,31 +659,53 @@ function TripPlanner() {
 
 export default function TripDetail() {
     const { id } = useParams();
-    //const tripId = Number(id);
+    const tripId = Number(id);
 
-    const [stops, setStops] = useState(INITIAL_STOPS);
-    const [meta] = useState(INITIAL_META);
 
-      // Load from DB on mount
+    const [loaded, setLoaded] = useState(false);
+    const [trip, setTrip] = useState({});
+
+    // Load from DB on mount
     useEffect(() => {
         if (!tripId) { setLoaded(true); return; }
 
         getTrip(tripId).then((trip) => {
-        if (trip) {
-            setMeta(trip.meta);
-            setStops(trip.stops);
-        }
-        setLoaded(true);
+            if (trip) {
+                setTrip(trip);
+
+                setMeta(trip.meta);
+                setStops(trip.stops);
+            }
+            setLoaded(true);
         }).catch(() => setLoaded(true));
     }, [tripId]);
 
+
+    // Check loading state
+    if (!loaded) {
+        return (
+            <div style={{ padding: "80px 24px", textAlign: "center", color: "#888" }}>
+                Loading trip…
+            </div>
+        );
+    }
+
+    // Trip not found
+    if (!trip?.id) {
+        return (
+            <div style={{ padding: "80px 24px", textAlign: "center", color: "#888" }}>
+                Trip not found
+            </div>
+        );
+    }
+
     return (
 		<div style={{ minHeight: "100vh", background: t.bg, fontFamily: "system-ui, -apple-system, sans-serif" }}>
-			<style>{`@media (max-width: 600px) { .stop-chevron { display: none !important; } .stop-gutter { display: none !important; } .stop-budget { display: none !important; } }`}</style>
+			<style>{`@media (max-width: 600px) { .stop-gutter { display: none !important; } .stop-budget { display: none !important; } }`}</style>
 			<Header />
-			<Breadcrumb tripTitle={meta.title} />
+			<Breadcrumb tripTitle={trip.meta?.title || ""} />
 			<main>
-				<TripPlanner />
+				<TripPlanner trip={trip} />
 			</main>
 			<Footer />
 		</div>

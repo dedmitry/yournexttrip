@@ -16,15 +16,15 @@ export const t = {
 };
 
 export const STATUS_CONFIG = {
-    upcoming:  { label: "Upcoming",  bg: "#E6F1FB", color: "#0C447C", dotColor: "#85B7EB", badgeBg: "#E6F1FB", badgeText: "#0C447C", iconBg: "#E6F1FB", iconColor: "#0C447C" },
-    planning:  { label: "Planning",  bg: "#EEEDFE", color: "#3C3489", dotColor: "#AFA9EC", badgeBg: "#EEEDFE", badgeText: "#3C3489", iconBg: "#EEEDFE", iconColor: "#3C3489" },
-    ongoing:   { label: "Today",     bg: "#EAF3DE", color: "#27500A", dotColor: "#97C459", badgeBg: "#EAF3DE", badgeText: "#27500A", iconBg: "#EAF3DE", iconColor: "#27500A" },
-    completed: { label: "Completed", bg: "#F1EFE8", color: "#5F5E5A", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
+    upcoming:  { label: "Upcoming",  bg: "#E6F1FB", color: "#0C447C" },
+    planning:  { label: "Planning",  bg: "#EEEDFE", color: "#3C3489" },
+    ongoing:   { label: "Today",     bg: "#EAF3DE", color: "#27500A" },
+    completed: { label: "Completed", bg: "#F1EFE8", color: "#5F5E5A" },
 };
 
 export const STOP_TYPE_CONFIG = {
-    transport: { icon: "✈", label: "Flights",     bg: "#E6F1FB", color: "#0C447C" },
-    hotel:     { icon: "⌂", label: "Stays",       bg: "#EEEDFE", color: "#3C3489" },
-    place:     { icon: "◎", label: "Places",      bg: "#EAF3DE", color: "#27500A" },
-    food:      { icon: "⊕", label: "Restaurants", bg: "#FAEEDA", color: "#633806" },
+    transport: { icon: "✈", label: "Flights",     bg: "#E6F1FB", color: "#0C447C", dotColor: "#85B7EB", badgeBg: "#E6F1FB", badgeText: "#0C447C", iconBg: "#E6F1FB", iconColor: "#0C447C" },
+    hotel:     { icon: "⌂", label: "Stays",       bg: "#EEEDFE", color: "#3C3489", dotColor: "#AFA9EC", badgeBg: "#EEEDFE", badgeText: "#3C3489", iconBg: "#EEEDFE", iconColor: "#3C3489" },
+    place:     { icon: "◎", label: "Places",      bg: "#EAF3DE", color: "#27500A", dotColor: "#97C459", badgeBg: "#EAF3DE", badgeText: "#27500A", iconBg: "#EAF3DE", iconColor: "#27500A" },
+    food:      { icon: "⊕", label: "Restaurants", bg: "#FAEEDA", color: "#633806", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
 };

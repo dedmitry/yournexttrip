@@ -55,18 +55,22 @@ export default function NewTripModal({ onClose, onCreate }) {
     if (!valid) return;
     setSubmitted(true);
     onCreate({
-      id: Date.now(),
-      title: title.trim(),
-      flag: "✈",
-      destination: dest || "—",
-      region: "—",
-      //dates: dates || "—", 
-      days: parseInt(days) || 0,
-      travelers: parseInt(travelers) || 1,
-      stops: 0,
-      budget: "—",
-      status: "planning",
-      coverColor: "#EEEDFE",
+        id: Date.now(),
+        meta: {
+            title: title.trim(),
+            flag: "✈",
+            destination: dest || "—",
+            region: "—",
+            dateFrom: dateFrom || "—",
+            dateTo: dateTo || "—",
+            days: parseInt(days) || 0,
+            travelers: parseInt(travelers) || 1,
+            stops: 0,
+            budget: "—",
+            status: "planning",
+            coverColor: "#EEEDFE",
+        },
+        stops: []
     });
     onClose();
     setTimeout(onClose, 1400);

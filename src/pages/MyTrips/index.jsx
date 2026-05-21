@@ -32,11 +32,11 @@ function sortTrips(trips, sort) {
 
 function Item({ trip, onDelete, onDuplicate }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const status = STATUS_CONFIG[trip.status];
+  const status = STATUS_CONFIG[trip.meta.status];
 
   // Distribute stops evenly across the 4 types for display purposes
-  const perType = Math.floor(trip.stops / 4);
-  const rem     = trip.stops % 4;
+  const perType = Math.floor(trip.meta.stops / 4);
+  const rem     = trip.meta.stops % 4;
   const stopCounts = {
     transport: perType + (rem > 0 ? 1 : 0),
     hotel:     perType + (rem > 1 ? 1 : 0),
@@ -61,11 +61,11 @@ function Item({ trip, onDelete, onDuplicate }) {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{
               width: 28, height: 28, borderRadius: "50%",
-              background: trip.coverColor, border: `0.5px solid ${t.border}`,
+              background: trip.meta.coverColor, border: `0.5px solid ${t.border}`,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 15, flexShrink: 0,
-            }}>{trip.flag}</div>
-            <span style={{ fontSize: 12, color: t.textMuted }}>{trip.region}</span>
+            }}>{trip.meta.flag}</div>
+            <span style={{ fontSize: 12, color: t.textMuted }}>{trip.meta.region}</span>
           </div>
 
           {/* Context menu */}
@@ -130,14 +130,14 @@ function Item({ trip, onDelete, onDuplicate }) {
           letterSpacing: "-0.3px", lineHeight: 1.25,
           marginBottom: 10,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-        }}>{trip.title}</div>
+        }}>{trip.meta.title}</div>
 
         {/* Meta chips */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-          <span style={chipStyle}>📅 {trip.dates}</span>
-          <span style={chipStyle}>⏱ {trip.days} days</span>
-          <span style={chipStyle}>📍 {trip.destination}</span>
-          <span style={chipStyle}>👥 {trip.travelers}</span>
+          <span style={chipStyle}>📅 {trip.meta.dateFrom} to {trip.meta.dateTo}</span>
+          <span style={chipStyle}>⏱ {trip.meta.days} days</span>
+          <span style={chipStyle}>📍 {trip.meta.destination}</span>
+          <span style={chipStyle}>👥 {trip.meta.travelers}</span>
         </div>
 
         {/* Stop-type stats — mirrors TripHeaderCard */}
@@ -237,8 +237,8 @@ export default function MyTrips() {
 
     const filtered = sortTrips(
         trips.filter((trip) => {
-            const matchesFilter = filter === "all" || trip.status === filter;
-            const matchesSearch = !search || trip.title.toLowerCase().includes(search.toLowerCase()) || trip.destination.toLowerCase().includes(search.toLowerCase());
+            const matchesFilter = filter === "all" || trip.meta.status === filter;
+            const matchesSearch = !search || trip.meta.title.toLowerCase().includes(search.toLowerCase()) || trip.meta.destination.toLowerCase().includes(search.toLowerCase());
             return matchesFilter && matchesSearch;
         }),
         sort
