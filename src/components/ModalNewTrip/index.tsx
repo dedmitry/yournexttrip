@@ -1,25 +1,31 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
+import { Trip } from "@types/trip";
 
-const t = {
-  bg:          "var(--color-background-primary,   #ffffff)",
-  bgSecondary: "var(--color-background-secondary, #f9f9f8)",
-  bgTertiary:  "var(--color-background-tertiary,  #f3f3f1)",
-  text:        "var(--color-text-primary,          #111111)",
-  textMuted:   "var(--color-text-secondary,        #666666)",
-  textHint:    "var(--color-text-tertiary,         #bbbbbb)",
-  border:      "var(--color-border-tertiary,       #e5e5e3)",
-  borderMd:    "var(--color-border-secondary,      #ccccca)",
-  accentGrad:  "linear-gradient(135deg, #FF3838 0%, #FFB347 100%)",
-  radiusSm:    8,
-  radiusMd:    12,
-  radiusLg:    16,
+import { calculateTripDays } from "@/utils/tripSummary";
+
+import { t, STATUS_CONFIG } from "@/lib/config";
+
+type StatusKey = keyof typeof STATUS_CONFIG;
+
+
+
+
+
+type NewTripModalProps = {
+  onClose: () => void;
+  onCreate: (trip: Trip) => void;
 };
 
 // ─── Shared form helpers ──────────────────────────────────────────────────────
 
-function FormField({ label, children, style }) {
+type FormFieldProps = {
+  label: ReactNode;
+  children: ReactNode;
+  style?: React.CSSProperties;
+};
+
+function FormField({ label, children, style }: FormFieldProps) {
   return (
     <div style={style}>
       <label style={{ fontSize: 11, color: t.textMuted, display: "block", marginBottom: 4 }}>{label}</label>
@@ -28,53 +34,51 @@ function FormField({ label, children, style }) {
   );
 }
 
-const inputStyle = {
-  width: "100%", fontSize: 13, padding: "8px 10px",
-  border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
-  fontFamily: "inherit", background: t.bg, color: t.text,
-  outline: "none", boxSizing: "border-box",
-};
-
 // ─── NewTripModal ─────────────────────────────────────────────────────────────
 
-export default function NewTripModal({ onClose, onCreate }) {
-  const [title, setTitle]         = useState("");
-  const [dest, setDest]           = useState("");
-  const [dateFrom, setDateFrom]   = useState("");
-  const [dateTo, setDateTo]       = useState("");
-  const [travelers, setTravelers] = useState("2");
-  const [submitted, setSubmitted] = useState(false);
+export default function NewTripModal({ onClose, onCreate }: NewTripModalProps) {
+  const [title, setTitle] = useState<string>("");
+  //const [dest, setDest] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+  const [travelers, setTravelers] = useState<string>("2");
+  const [status, setStatus] = useState<StatusKey>("planning");
+  const [submitted, setSubmitted] = useState<boolean>(false);
+
 
   const valid = title.trim().length > 0;
 
-  const days = dateFrom && dateTo
-    ? Math.max(1, Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / 86400000) + 1)
-    : null;
+  const days = calculateTripDays(dateFrom, dateTo);
 
-  const handleCreate = () => {
+  const handleCreate = (): void => {
     if (!valid) return;
+
     setSubmitted(true);
-    onCreate({
-        id: Date.now(),
-        meta: {
-            title: title.trim(),
-            flag: "✈",
-            destination: dest || "—",
-            region: "—",
-            dateFrom: dateFrom || "—",
-            dateTo: dateTo || "—",
-            days: parseInt(days) || 0,
-            travelers: parseInt(travelers) || 1,
-            stops: 0,
-            budget: "—",
-            status: "planning",
-            coverColor: "#EEEDFE",
-        },
-        stops: []
-    });
+
+    const trip: Trip = {
+      id: Date.now(),
+      meta: {
+        title: title.trim(),
+        //flag: "✈",
+        //destination: dest || "—",
+        //region: "—",
+        dateFrom: dateFrom || "—",
+        dateTo: dateTo || "—",
+        travelers: Number(travelers) || 1,
+        rating: null,
+        status,
+      },
+      stops: [],
+      checklist: [],
+      notes: [],
+    };
+
+    onCreate(trip);
     onClose();
+
     setTimeout(onClose, 1400);
   };
+
 
   return (
     <div
@@ -146,15 +150,15 @@ export default function NewTripModal({ onClose, onCreate }) {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Tokyo Explorer"
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                style={{ ...inputStyle, fontSize: 14, borderColor: title.trim() ? t.borderMd : t.border }}
+                style={{ width: "100%", fontSize: 13, padding: "8px 10px",
+  border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
+  fontFamily: "inherit", background: t.bg, color: t.text,
+  outline: "none", boxSizing: "border-box", 
+                    borderColor: title.trim() ? t.borderMd : t.border 
+                }}
               />
             </FormField>
 
-            {/* Destination */}
-            <FormField label="Destination" style={{ marginBottom: 14 }}>
-              <input value={dest} onChange={(e) => setDest(e.target.value)}
-                placeholder="e.g. Tokyo & Kyoto, Japan" style={inputStyle} />
-            </FormField>
 
             {/* Date range */}
             <div style={{ marginBottom: 14 }}>
@@ -209,21 +213,55 @@ export default function NewTripModal({ onClose, onCreate }) {
               </div>
             </div>
 
-            {/* Travelers */}
-            <FormField label="Travelers" style={{ marginBottom: 20 }}>
+            {/* Travelers + Status row */}
+            <div style={{ display: "flex", gap: 14, marginBottom: 20, alignItems: "flex-end" }}>
+            <FormField label="Travelers">
               <div style={{
                 display: "flex", alignItems: "center",
                 border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
                 overflow: "hidden", width: 120,
               }}>
                 <button onClick={() => setTravelers(String(Math.max(1, Number(travelers) - 1)))}
-                  style={{ width: 36, height: 38, flexShrink: 0, background: t.bgSecondary, border: "none", cursor: "pointer", fontSize: 18, color: t.textMuted }}>−</button>
+                  style={{ width: 36, height: 36, flexShrink: 0, background: t.bgSecondary, border: "none", cursor: "pointer", fontSize: 18, color: t.textMuted }}>−</button>
                 <span style={{ flex: 1, textAlign: "center", fontSize: 14, color: t.text, fontWeight: 500 }}>{travelers}</span>
                 <button onClick={() => setTravelers(String(Number(travelers) + 1))}
-                  style={{ width: 36, height: 38, flexShrink: 0, background: t.bgSecondary, border: "none", cursor: "pointer", fontSize: 18, color: t.textMuted }}>+</button>
+                  style={{ width: 36, height: 36, flexShrink: 0, background: t.bgSecondary, border: "none", cursor: "pointer", fontSize: 18, color: t.textMuted }}>+</button>
               </div>
             </FormField>
 
+              <FormField label="Status" style={{ flex: 1 }}>
+                <div style={{ position: "relative" }}>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as StatusKey)}
+                    style={{
+                      width: "100%", fontSize: 13, padding: "8px 32px 8px 10px",
+                      border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
+                      fontFamily: "inherit", outline: "none", cursor: "pointer",
+                      appearance: "none", WebkitAppearance: "none",
+                      background: STATUS_CONFIG[status].bg,
+                      color: STATUS_CONFIG[status].color,
+                      fontWeight: 500,
+                      height: 38, boxSizing: "border-box",
+                      transition: "background .15s, color .15s",
+                    }}
+                  >
+                    {(Object.entries(STATUS_CONFIG) as [StatusKey, typeof STATUS_CONFIG[StatusKey]][]).map(([key, cfg]) => (
+                      <option key={key} value={key}>{cfg.label}</option>
+                    ))}
+                  </select>
+                  <svg
+                    width="12" height="12" viewBox="0 0 12 12" fill="none"
+                    style={{
+                      position: "absolute", right: 10, top: "50%",
+                      transform: "translateY(-50%)", pointerEvents: "none",
+                    }}
+                  >
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke={STATUS_CONFIG[status].color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              </FormField>
+</div>
             {/* Actions */}
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <button onClick={onClose} style={{
@@ -247,3 +285,16 @@ export default function NewTripModal({ onClose, onCreate }) {
     </div>
   );
 }
+
+
+/*
+
+            {/* Destination *
+            <FormField label="Destination" style={{ marginBottom: 14 }}>
+              <input value={dest} onChange={(e) => setDest(e.target.value)}
+                placeholder="e.g. Tokyo & Kyoto, Japan" style={{width: "100%", fontSize: 13, padding: "8px 10px",
+  border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
+  fontFamily: "inherit", background: t.bg, color: t.text,
+  outline: "none", boxSizing: "border-box",}} />
+            </FormField>
+*/

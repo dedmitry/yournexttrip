@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 
 
 import Main from "@pages/Main";
-import TripDetails from "@pages/TripDetails";
+import TripDetails from "@/pages/TripDetails";
 import NotFound from "@pages/404";
 
 

@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 
-import { t } from "@lib/config";
+import { t } from "@/lib/config";
 
 
 export default function Header() {
@@ -15,7 +15,7 @@ export default function Header() {
         }}>
             <div style={{
                 maxWidth: 1120, margin: "0 auto",
-                padding: "0 24px",
+                padding: "0 12px",
                 display: "flex", alignItems: "center",
                 height: 56, gap: 32,
             }}>
@@ -38,7 +38,14 @@ export default function Header() {
                 {/* Spacer */}
                 <div style={{ flex: 1 }} />
 
-                {/* Right actions */}
+
+            </div>
+        </header>
+    );
+}
+
+/*
+                {/* Right actions *
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                     <button style={{
                         fontSize: 13, padding: "6px 14px", borderRadius: 20,
@@ -47,7 +54,4 @@ export default function Header() {
                         whiteSpace: "nowrap",
                     }}>Account</button>
                 </div>
-            </div>
-        </header>
-    );
-}
+*/

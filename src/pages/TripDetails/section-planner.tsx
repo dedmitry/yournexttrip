@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, ReactNode, CSSProperties } from "react";
 
+import { TripStop, TripMeta, StopId, StopType } from "@/types/trip";
 
-import Header from "@components/PageHeader";
-import Breadcrumb from "@components/PageBreadcrumb";
-import Footer from "@components/PageFooter";
-
-import { getTrip, saveTrip } from "@utils/storage";
-import { t, STOP_TYPE_CONFIG } from "@lib/config";
+import { t, STOP_TYPE_CONFIG } from "@/lib/config";
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getDayLabel(day, dateFrom) {
+function getDayLabel(day: number, dateFrom: string | Date) {
   try {
     const start = new Date(dateFrom);
     if (isNaN(start.getTime())) throw new Error();
@@ -24,30 +19,6 @@ function getDayLabel(day, dateFrom) {
   } catch {
     return `Day ${day}`;
   }
-}
-
-function countByType(stops) {
-    return stops.reduce(
-        (acc, s) => ({ ...acc, [s.type]: acc[s.type] + 1 }),
-        { transport: 0, hotel: 0, place: 0, food: 0 }
-    );
-}
-
-function totalBudget(stops) {
-    let sum = 0;
-    let hasAny = false;
-    stops.forEach((s) => {
-        if (!s.budget) return;
-        const lower = s.budget.toLowerCase();
-        if (lower === "free") return;
-        // Strip currency symbols, commas, and grab first number (handles "$1,200", "$180/night")
-        const match = s.budget.replace(/,/g, "").match(/[\d.]+/);
-        if (match) { sum += parseFloat(match[0]); hasAny = true; }
-    });
-    if (!hasAny) return "—";
-    return sum >= 1000
-        ? `$${(sum / 1000).toFixed(1)}k`
-        : `$${Math.round(sum)}`;
 }
 
 const inputStyle = {
@@ -68,7 +39,15 @@ const cancelBtnStyle = {
   color: t.textMuted, cursor: "pointer", fontFamily: "inherit",
 };
 
-function Field({ label, children, style }) {
+function Field({ 
+    label, 
+    children, 
+    style 
+} : {
+    label: string;
+    children: ReactNode;
+    style?: CSSProperties;
+}) {
   return (
     <div style={style}>
       <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>{label}</label>
@@ -77,92 +56,6 @@ function Field({ label, children, style }) {
   );
 }
 
-function Chip({ children, style }) {
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      background: t.bg, border: `0.5px solid ${t.border}`,
-      borderRadius: 20, padding: "4px 11px", fontSize: 12, color: t.textMuted, ...style,
-    }}>{children}</span>
-  );
-}
-
-
-// ════════════════════════════════════════════════════════════════════════════
-//  TRIP HEADER CARD (internal)
-// ════════════════════════════════════════════════════════════════════════════
-
-function TripHeaderCard({ meta, stops, onTitleChange }) {
-  const counts = countByType(stops);
-  const budget = totalBudget(stops);
-  return (
-    <div style={{
-      background: t.bgSecondary, border: `0.5px solid ${t.border}`,
-      borderRadius: t.radiusMd, padding: "20px 20px 16px", marginBottom: 16,
-    }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: "50%", background: t.bg,
-              border: `0.5px solid ${t.border}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, flexShrink: 0,
-            }}>{meta.flag}</div>
-            <span style={{ fontSize: 13, color: t.textMuted }}>{meta.region}</span>
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="4" y="3" width="16" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/>
-  <path d="M4 10H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M8 17L6 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M16 17L18 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-  <circle cx="8.5" cy="13.5" r="1.5" fill="currentColor"/>
-  <circle cx="15.5" cy="13.5" r="1.5" fill="currentColor"/>
-  <path d="M8 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M16 3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-</svg>
-          </div>
-          <input
-            value={meta.title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            aria-label="Trip title"
-            style={{
-              fontSize: 22, fontWeight: 500, color: t.text,
-              border: "none", background: "transparent", outline: "none",
-              width: "100%", fontFamily: "inherit", padding: 0,
-              lineHeight: 1.2, marginTop: 6, marginBottom: 8, display: "block",
-            }}
-          />
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <Chip>📅 {meta.dates}</Chip>
-            <Chip>⏱ {meta.days} days</Chip>
-            <Chip style={{ background: t.bg, borderColor: t.border, color: t.textMuted }}>
-              {budget}
-            </Chip>
-            <Chip>📍 {meta.cities}</Chip>
-            <Chip>👥 {meta.travelers} travelers</Chip>
-          </div>
-        </div>
-      </div>
-
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8,
-        borderTop: `0.5px solid ${t.border}`, paddingTop: 14,
-      }}>
-        {["transport", "hotel", "place", "food"].map((type) => {
-          const cfg = STOP_TYPE_CONFIG[type];
-          return (
-            <div key={type} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 18, fontWeight: 500, color: t.text }}>{counts[type]}</div>
-              <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>
-                {cfg.icon} {cfg.label}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ════════════════════════════════════════════════════════════════════════════
 //  STOP CARD
@@ -177,15 +70,33 @@ function StopCard({
     onDelete, 
     onMoveUp, 
     onMoveDown 
+} : {
+    stop: TripStop;
+
+    isOpen: boolean;
+    isLast: boolean;
+
+    onToggle: () => void;
+    onSave: (updated: TripStop) => void;
+
+    onDelete: () => void;
+    onMoveUp: () => void;
+    onMoveDown: () => void;
 }) {
     const cfg = STOP_TYPE_CONFIG[stop.type];
+
     //const [draft, setDraft] = useState(stop);
     //if (!isOpen && JSON.stringify(draft) !== JSON.stringify(stop)) setDraft(stop);
 
     //const handleToggle = () => { if (isOpen) setDraft(stop); onToggle(); };
     const handleToggle = onToggle;
 
-    const iconBtn = (label, title, action, danger = false) => (
+    const iconBtn = (
+        label: React.ReactNode,
+        title: string,
+        action: () => void,
+        danger = false
+    ) => (
         <button
             key={title} onClick={action} title={title} aria-label={title}
             style={{
@@ -209,6 +120,7 @@ function StopCard({
 
     return (
         <div style={{ display: "flex", gap: 0, position: "relative" }}>
+            <style>{`@media (max-width: 600px) { .stop-gutter { display: none !important; } .stop-budget { display: none !important; } }`}</style>
             {/* Gutter */}
             <div 
                 className="stop-gutter" 
@@ -248,7 +160,7 @@ function StopCard({
                             background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap", marginBottom: 4,
                         }}>{cfg.label}</span>
                         <div style={{ fontSize: 14, fontWeight: 500, color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stop.name}</div>
-                        <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.detail}</div>
+                        <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.details}</div>
                     </div>
 
                     {/* Right: time / chips / actions */}
@@ -299,7 +211,14 @@ function StopCard({
                     <div style={{ borderTop: `0.5px solid ${t.border}`, padding: "12px 14px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
                             <Field label="Type">
-                                <select value={stop.type} onChange={(e) => onSave({ ...stop, type: e.target.value })} style={inputStyle}>
+                                <select 
+                                    value={stop.type} 
+                                    onChange={(e) => onSave({
+            ...stop,
+            type: e.target.value as StopType,
+        })} 
+                                    style={inputStyle}
+                                >
                                     <option value="transport">Transport</option>
                                     <option value="hotel">Hotel</option>
                                     <option value="place">Place</option>
@@ -319,7 +238,7 @@ function StopCard({
                             <input value={stop.name} onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
                         </Field>
                         <Field label="Address / details" style={{ marginBottom: 9 }}>
-                            <input value={stop.detail} onChange={(e) => onSave({ ...stop, detail: e.target.value })} style={inputStyle} />
+                            <input value={stop.details} onChange={(e) => onSave({ ...stop, details: e.target.value })} style={inputStyle} />
                         </Field>
                         <div style={{ marginBottom: 9 }}>
                             <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>Link (maps / info)</label>
@@ -350,10 +269,20 @@ function StopCard({
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
                             <Field label="Budget / cost">
-                            <input value={stop.budget} onChange={(e) => onSave({ ...stop, budget: e.target.value })} style={inputStyle} placeholder="e.g. $45 or Free" />
+                            <input 
+                                value={stop.budget} 
+                                onChange={(e) => onSave({ ...stop, budget: Number(e.target.value) })} 
+                                style={inputStyle} 
+                                placeholder="e.g. $45 or Free" 
+                            />
                             </Field>
                             <Field label="Duration">
-                            <input value={stop.duration} onChange={(e) => onSave({ ...stop, duration: e.target.value })} style={inputStyle} placeholder="e.g. 2h 30m" />
+                            <input 
+                                value={stop.duration} 
+                                onChange={(e) => onSave({ ...stop, duration: Number(e.target.value) })} 
+                                style={inputStyle} 
+                                placeholder="e.g. 2h 30m" 
+                                />
                             </Field>
                         </div>
                         <Field label="Notes">
@@ -372,7 +301,13 @@ function StopCard({
 //  TRANSIT ROW
 // ════════════════════════════════════════════════════════════════════════════
 
-function TransitRow({ stop, onSave }) {
+function TransitRow({ 
+    stop, 
+    onSave 
+}: {
+    stop: TripStop;
+    onSave: (value: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(stop.travelNext);
   const save = () => { onSave(value); setEditing(false); };
@@ -415,7 +350,15 @@ function TransitRow({ stop, onSave }) {
 //  DAY DIVIDER
 // ════════════════════════════════════════════════════════════════════════════
 
-function DayDivider({ day, isCurrent, dateFrom }) {
+function DayDivider({ 
+    day, 
+    isCurrent, 
+    dateFrom 
+} : {
+    day: number;
+    isCurrent: boolean;
+    dateFrom: string | Date;
+}) {
     const displayLabel = getDayLabel(day, dateFrom ?? "");
 
     return (
@@ -446,33 +389,43 @@ function DayDivider({ day, isCurrent, dateFrom }) {
 //  ADD BAR
 // ════════════════════════════════════════════════════════════════════════════
 
-function AddBar({ onAdd, targetDay, compact }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 8,
-      marginTop: compact ? 6 : 12,
-      padding: compact ? "6px 10px" : "9px 12px",
-      background: t.bgSecondary,
-      border: `0.5px dashed ${t.borderMd}`, borderRadius: t.radiusMd,
-    }}>
-      <span style={{ fontSize: compact ? 12 : 13, color: t.textMuted, flexShrink: 0 }}>
-        {compact ? `+ Day ${targetDay}` : "Add stop"}
-      </span>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        {["transport", "hotel", "place", "food"].map((type) => {
-          const cfg = STOP_TYPE_CONFIG[type];
-          return (
-            <button key={type} onClick={() => onAdd(type, targetDay)} style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              fontSize: compact ? 11 : 12, padding: compact ? "3px 9px" : "4px 11px", borderRadius: 20,
-              border: `0.5px solid ${t.border}`, background: t.bg,
-              color: t.textMuted, cursor: "pointer", fontFamily: "inherit",
-            }}>{cfg.icon} {cfg.label}</button>
-          );
-        })}
-      </div>
-    </div>
-  );
+function AddBar({ 
+    onAdd, 
+    targetDay, 
+    compact 
+} : { 
+    onAdd: (type: StopType, targetDay?: number) => void; 
+    targetDay: number; 
+    compact: boolean 
+}) {
+
+    const types = Object.keys(STOP_TYPE_CONFIG) as StopType[];
+    return (
+        <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            marginTop: compact ? 6 : 12,
+            padding: compact ? "6px 10px" : "9px 12px",
+            background: t.bgSecondary,
+            border: `0.5px dashed ${t.borderMd}`, borderRadius: t.radiusMd,
+        }}>
+        <span style={{ fontSize: compact ? 12 : 13, color: t.textMuted, flexShrink: 0 }}>
+            {compact ? `+ Day ${targetDay}` : "Add stop"}
+        </span>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {types.map((type) => {
+            const cfg = STOP_TYPE_CONFIG[type];
+            return (
+                <button key={type} onClick={() => onAdd(type, targetDay)} style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                fontSize: compact ? 11 : 12, padding: compact ? "3px 9px" : "4px 11px", borderRadius: 20,
+                border: `0.5px solid ${t.border}`, background: t.bg,
+                color: t.textMuted, cursor: "pointer", fontFamily: "inherit",
+                }}>{cfg.icon} {cfg.label}</button>
+            );
+            })}
+        </div>
+        </div>
+    );
 }
 
 
@@ -481,94 +434,80 @@ function AddBar({ onAdd, targetDay, compact }) {
 //  TRIP PLANNER (internal logic)
 // ════════════════════════════════════════════════════════════════════════════
 
-function TripPlanner({trip}) {
-	const [meta, setMeta] = useState(trip.meta);
-	const [stops, setStops] = useState(trip.stops);
-	const [openId, setOpenId] = useState(null);
-	const [nextId, setNextId] = useState(trip.stops.length + 1);
+export default function TripPlanner({
+    meta,
+    stops,
 
-	const toggleOpen = (id) => setOpenId((prev) => (prev === id ? null : id));
+    updateStops,
+}: {
+    meta: TripMeta;
+    stops: TripStop[];
 
+    updateStops: (updatedStops: TripStop[]) => void;
+}) {
+	const [openId, setOpenId] = useState<StopId | null>(null);
+	const [nextId, setNextId] = useState(stops.length + 1);
 
-    // Debounced save — waits 600ms after last change
-    const saveTimeout = useRef(null);
-
-    useEffect(() => {
-        return () => clearTimeout(saveTimeout.current);
-    }, []);
-
-
-    const debouncedSave = useCallback((updatedStops, updatedMeta) => {
-        clearTimeout(saveTimeout.current);
-        saveTimeout.current = setTimeout(() => {
-            saveTrip({ id: trip.id, meta: updatedMeta, stops: updatedStops });
-        }, 600);
-    }, [trip.id]);
-
-    const updateMeta = (updatedMeta) => {
-        setMeta(updatedMeta);
-        debouncedSave(stops, updatedMeta);
+    const toggleOpen = (id: StopId) => {
+        setOpenId(prev => (prev === id ? null : id));
     };
 
-	const updateStop = (updated) => {
-        setStops((prev) => {
-            const next = prev.map((s) => (s.id === updated.id ? updated : s));
-            debouncedSave(next, meta);
-            return next;
-        });
-		//setStops((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-		//setOpenId(null);
+
+    const updateStop = (updated: TripStop) => {
+        const next = stops.map((s) => (s.id === updated.id ? updated : s));
+        updateStops(next);
 	};
 
 
-	const addStop = (type, targetDay) => {
+	const addStop = (type: keyof typeof STOP_TYPE_CONFIG, targetDay?: number) => {
 		const day = targetDay ?? (stops.length > 0 ? stops[stops.length - 1].day : 1);
-		const id = nextId;
 		setNextId((n) => n + 1);
+
 		const cfg = STOP_TYPE_CONFIG[type];
-		const newStop = { id, day, type, name: `New ${cfg.label.toLowerCase()}`, detail: "", time: "", duration: "", travelNext: "", budget: "", link: "", notes: "" };
-		/*setStops((prev) => {
-		// Insert after the last stop of the target day
-		const lastIdx = prev.map((s, i) => s.day === day ? i : -1).filter(i => i >= 0).pop();
-		if (lastIdx === undefined) return [...prev, newStop];
-		const arr = [...prev];
-		arr.splice(lastIdx + 1, 0, newStop);
-		return arr;
-		});*/
-        setStops((prev) => {
-            const next = [...prev, newStop];
-            saveTrip({ id: trip.id, meta, stops: next }); // immediate
-            return next;
-        });
-		setOpenId(id);
+		const newStop: TripStop = {
+            id: nextId, 
+            day, 
+            type, 
+            time: "", 
+            name: `New ${cfg.label.toLowerCase()}`, 
+            details: "", 
+            link: "", 
+            budget: 0, 
+            duration: 0, 
+            travelNext: "", 
+            notes: "" 
+        };
+
+        const next = [...stops, newStop];
+        updateStops(next);
+
+		setOpenId(newStop.id);
 	};
 
-	const deleteStop = (id) => {
-        setStops((prev) => {
-            const next = prev.filter((s) => s.id !== id);
-            saveTrip({ id: trip.id, meta, stops: next }); // immediate
-            return next;
-        });
-		//setStops((prev) => prev.filter((s) => s.id !== id));
+	const deleteStop = (id: number) => {
+        updateStops(stops.filter((s) => s.id !== id));
 		if (openId === id) setOpenId(null);
 	};
 
-	const moveStop = (id, dir) => {
-		setStops((prev) => {
-		const idx = prev.findIndex((s) => s.id === id);
-		const next = idx + dir;
-		if (next < 0 || next >= prev.length) return prev;
-		const arr = [...prev];
-		[arr[idx], arr[next]] = [arr[next], arr[idx]];
-        saveTrip({ id: tripId, meta, stops: arr });
-		return arr;
-		});
+	const moveStop = (id: number, dir: number) => {
+        const idx = stops.findIndex((s) => s.id === id);
+        const next = idx + dir;
+
+        if (idx === -1 || next < 0 || next >= stops.length) return;
+
+        const arr = [...stops];
+        [arr[idx], arr[next]] = [arr[next], arr[idx]];
+
+        updateStops(arr);
 	};
 
-	const updateTransit = (id, travelNext) =>
-		setStops((prev) => prev.map((s) => (s.id === id ? { ...s, travelNext } : s)));
-
-
+    const updateTransit = (id: StopId, travelNext: string) => {
+        updateStops(
+            stops.map(s =>
+                s.id === id ? { ...s, travelNext } : s
+            )
+        );
+    };
 
 
 	const maxDay = stops.length > 0 
@@ -580,23 +519,28 @@ function TripPlanner({trip}) {
 
 	const addDay = () => {
 		const newDay = maxDay + 1;
-		const id = nextId;
 		setNextId((n) => n + 1);
-		setStops((prev) => [
-		...prev,
-		{ id, day: newDay, type: "place", name: "New stop", detail: "", time: "", duration: "", travelNext: "", budget: "", link: "", notes: "" },
-		]);
-		setOpenId(id);
+		
+        const newStop: TripStop = {
+            id: nextId, 
+            day: newDay, 
+            type: "place", 
+            time: "", 
+            name: "New stop", 
+            details: "", 
+            link: "", 
+            budget: 0, 
+            duration: 0, 
+            travelNext: "", 
+            notes: "" 
+        };
+
+        updateStops([...stops, newStop]);
+		setOpenId(newStop.id);
 	};
 
 	return (
-		<div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 12px 40px" }}>
-			<TripHeaderCard 
-                meta={meta} 
-                stops={stops} 
-                onTitleChange={(v) => setMeta({ ...meta, title: v })} 
-            />
-
+        <>
 			{days.map((day) => {
 				const dayStops = stops.filter((s) => s.day === day);
 				return (
@@ -608,16 +552,19 @@ function TripPlanner({trip}) {
 					const isLastInTrip = globalIdx === stops.length - 1;
 					return (
 						<div key={stop.id}>
-						<StopCard
-							stop={stop} isOpen={openId === stop.id} isLast={isLastInTrip}
-							onToggle={() => toggleOpen(stop.id)} onSave={updateStop}
-							onDelete={() => deleteStop(stop.id)}
-							onMoveUp={() => moveStop(stop.id, -1)}
-							onMoveDown={() => moveStop(stop.id, 1)}
-						/>
-						{!isLastInTrip && (
-							<TransitRow stop={stop} onSave={(v) => updateTransit(stop.id, v)} />
-						)}
+                            <StopCard
+                                stop={stop} 
+                                isOpen={openId === stop.id} 
+                                isLast={isLastInTrip}
+                                onToggle={() => toggleOpen(stop.id)} 
+                                onSave={updateStop}
+                                onDelete={() => deleteStop(stop.id)}
+                                onMoveUp={() => moveStop(stop.id, -1)}
+                                onMoveDown={() => moveStop(stop.id, 1)}
+                            />
+                            {!isLastInTrip && (
+                                <TransitRow stop={stop} onSave={(v) => updateTransit(stop.id, v)} />
+                            )}
 						</div>
 					);
 					})}
@@ -649,65 +596,6 @@ function TripPlanner({trip}) {
 			>
 				+ Add day {maxDay + 1}
 			</button>
-		</div>
+		</>
 	);
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-//  PAGE ROOT  ← default export
-// ════════════════════════════════════════════════════════════════════════════
-
-export default function TripDetail() {
-    const { id } = useParams();
-    const tripId = Number(id);
-
-
-    const [loaded, setLoaded] = useState(false);
-    const [trip, setTrip] = useState({});
-
-    // Load from DB on mount
-    useEffect(() => {
-        if (!tripId) { setLoaded(true); return; }
-
-        getTrip(tripId).then((trip) => {
-            if (trip) {
-                setTrip(trip);
-
-                setMeta(trip.meta);
-                setStops(trip.stops);
-            }
-            setLoaded(true);
-        }).catch(() => setLoaded(true));
-    }, [tripId]);
-
-
-    // Check loading state
-    if (!loaded) {
-        return (
-            <div style={{ padding: "80px 24px", textAlign: "center", color: "#888" }}>
-                Loading trip…
-            </div>
-        );
-    }
-
-    // Trip not found
-    if (!trip?.id) {
-        return (
-            <div style={{ padding: "80px 24px", textAlign: "center", color: "#888" }}>
-                Trip not found
-            </div>
-        );
-    }
-
-    return (
-		<div style={{ minHeight: "100vh", background: t.bg, fontFamily: "system-ui, -apple-system, sans-serif" }}>
-			<style>{`@media (max-width: 600px) { .stop-gutter { display: none !important; } .stop-budget { display: none !important; } }`}</style>
-			<Header />
-			<Breadcrumb tripTitle={trip.meta?.title || ""} />
-			<main>
-				<TripPlanner trip={trip} />
-			</main>
-			<Footer />
-		</div>
-    );
 }

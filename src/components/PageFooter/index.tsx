@@ -24,7 +24,7 @@ export default function SiteFooter() {
   return (
     <footer style={{ borderTop: `0.5px solid ${t.border}`, background: t.bgTertiary, marginTop: 80 }}>
       <div style={{
-        maxWidth: 1120, margin: "0 auto", padding: "20px 24px",
+        maxWidth: 1120, margin: "0 auto", padding: "20px 12px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         flexWrap: "wrap", gap: 12,
       }}>

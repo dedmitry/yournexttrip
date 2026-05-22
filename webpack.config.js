@@ -31,6 +31,7 @@ module.exports = (env = {}) => {
         "@utils": path.resolve(__dirname, "src/utils"),
         "@lib": path.resolve(__dirname, "src/lib"),
         "@assets": path.resolve(__dirname, "src/assets"),
+        "@types": path.resolve(__dirname, "src/types"),
       },
     },
 
