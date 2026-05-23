@@ -1,9 +1,9 @@
 
-export function parseDate(date?: string): Date | null {
-    if (!date) return null;
+export function parseDate(dateStr?: string) {
+    if (!dateStr) return null;
 
-    const d = new Date(date);
-    return isNaN(d.getTime()) ? null : d;
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return new Date(y, m - 1, d); // LOCAL date, no shift
 }
 
 export function tripTripRange(

@@ -1,18 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-
 import Header from "@components/PageHeader";
 import Footer from "@components/PageFooter";
 import FilterBar from "@components/FilterBar";
 import EmptyState from "@components/EmptyState";
 import NewTripModal from "@components/ModalNewTrip";
 
-
 import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops } from "@/utils/tripSummary";
 import { saveTrip, getAllTrips, deleteTrip as deleteTripDB } from "@utils/storage";
 
-import { t, STATUS_CONFIG, STOP_TYPE_CONFIG } from "@lib/config";
+import { t } from "@lib/styles";
+import { STATUS_CONFIG, STOP_TYPE_CONFIG } from "@lib/config";
 
 
 
@@ -65,7 +64,7 @@ function Item({ trip, onDelete, onDuplicate, onRate }) {
 
     const tripDays = calculateTripDays(trip.meta.dateFrom, trip.meta.dateTo);
     const tripStats = countTripStops(trip.stops);
-
+console.log(trip.meta.dateFrom, trip.meta.dateTo)
     // Distribute stops evenly across the 4 types for display purposes
     const perType = Math.floor(trip.meta.stops / 4);
     const rem     = trip.meta.stops % 4;
