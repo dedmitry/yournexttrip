@@ -20,9 +20,10 @@
 };
  
 export const inputStyle = {
-    width: "100%", fontSize: 13, padding: "6px 10px",
-    border: `0.5px solid ${t.borderMd}`, borderRadius: t.radiusSm,
-    fontFamily: "inherit", background: t.bg, color: t.text, outline: "none",
+    width: "100%", 
+    fontFamily: "inherit", fontSize: 13,
+    border: `1px solid ${t.borderMd}`, borderRadius: t.radiusSm,
+    background: t.bg, color: t.text, padding: "6px 10px", outline: "none",
 };
  
 export const saveBtnStyle = {

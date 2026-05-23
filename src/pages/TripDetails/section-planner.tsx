@@ -406,24 +406,29 @@ function AddBar({
             marginTop: compact ? 6 : 12,
             padding: compact ? "6px 10px" : "9px 12px",
             background: t.bgSecondary,
-            border: `0.5px dashed ${t.borderMd}`, borderRadius: t.radiusMd,
+            border: `1px dashed ${t.borderMd}`, borderRadius: t.radiusMd,
         }}>
-        <span style={{ fontSize: compact ? 12 : 13, color: t.textMuted, flexShrink: 0 }}>
-            {compact ? `+ Day ${targetDay}` : "Add stop"}
-        </span>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {types.map((type) => {
-            const cfg = STOP_TYPE_CONFIG[type];
-            return (
-                <button key={type} onClick={() => onAdd(type, targetDay)} style={{
-                display: "inline-flex", alignItems: "center", gap: 5,
-                fontSize: compact ? 11 : 12, padding: compact ? "3px 9px" : "4px 11px", borderRadius: 20,
-                border: `0.5px solid ${t.border}`, background: t.bg,
-                color: t.textMuted, cursor: "pointer", fontFamily: "inherit",
-                }}>{cfg.icon} {cfg.label}</button>
-            );
-            })}
-        </div>
+            <span style={{ fontSize: compact ? 12 : 13, color: t.textMuted, flexShrink: 0 }}>
+                {compact ? `+ Day ${targetDay}` : "Add stop"}
+            </span>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {types.map((type) => {
+                const cfg = STOP_TYPE_CONFIG[type];
+                return (
+                    <button 
+                        key={type} 
+                        onClick={() => onAdd(type, targetDay)} 
+                        style={{
+                            display: "inline-flex", alignItems: "center", gap: 5,
+                            fontFamily: "inherit", fontSize: compact ? 11 : 12,
+                            border: `0.5px solid ${t.border}`, borderRadius: 20, 
+                            background: t.bg, color: t.textMuted, 
+                            cursor: "pointer", padding: compact ? "3px 9px" : "4px 11px", 
+                        }}
+                    >{cfg.icon} {cfg.label}</button>
+                );
+                })}
+            </div>
         </div>
     );
 }

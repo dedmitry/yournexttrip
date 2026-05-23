@@ -153,7 +153,7 @@ export default function NewTripModal({
                         placeholder="e.g. Tokyo Explorer"
                         onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                         style={{ width: "100%", fontSize: 13, padding: "8px 10px",
-                            border: `0.5px solid ${t.borderMd}`, borderRadius: t.radiusSm,
+                            border: `1px solid ${t.borderMd}`, borderRadius: t.radiusSm,
                             fontFamily: "inherit", background: t.bg, color: t.text,
                             outline: "none", boxSizing: "border-box", 
                             borderColor: title.trim() ? t.borderMd : t.borderMd 
