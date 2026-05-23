@@ -154,10 +154,10 @@ export default function TripHeaderCard({
                         //onChange={(e) => onTitleChange(e.target.value)}
                         aria-label="Trip title"
                         style={{
-                        fontSize: 22, fontWeight: 500, color: t.text,
-                        border: "none", background: "transparent", outline: "none",
-                        width: "100%", fontFamily: "inherit", padding: 0,
-                        lineHeight: 1.2, marginTop: 6, marginBottom: 8, display: "block",
+                            fontSize: 22, fontWeight: 500, color: t.text,
+                            border: "none", background: "transparent", outline: "none",
+                            width: "100%", fontFamily: "inherit", padding: 0,
+                            lineHeight: 1.2, marginTop: 6, marginBottom: 8, display: "block",
                         }}
                     />
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -175,7 +175,7 @@ export default function TripHeaderCard({
 
             <div style={{
                 display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8,
-                borderTop: `0.5px solid ${t.border}`, paddingTop: 14,
+                borderTop: `1px solid ${t.borderMd}`, paddingTop: 14,
             }}>
                 {Object.keys(STOP_TYPE_CONFIG).map((type, i, arr) => {
                     const cfg = STOP_TYPE_CONFIG[type];
