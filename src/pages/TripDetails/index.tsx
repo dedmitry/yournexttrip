@@ -104,6 +104,11 @@ export default function TripDetail() {
         }, [trip, updateTrip]
     );
 
+    const rateTrip = async (rating: number) => {
+        const updatedMeta = { ...trip.meta, rating };
+        updateTrip(trip.stops, updatedMeta, trip.checklist, trip.notes);;
+    };
+
 
     // Check loading state
     if (!loaded) {
@@ -142,6 +147,7 @@ export default function TripDetail() {
                     <>
                     <SectionSummary 
                         trip={trip}
+                        onRate={rateTrip}
                     />
                     <SectionPlanner 
                         meta={trip.meta}

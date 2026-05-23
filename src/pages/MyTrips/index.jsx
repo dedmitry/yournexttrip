@@ -10,7 +10,7 @@ import NewTripModal from "@components/ModalNewTrip";
 import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops } from "@/utils/tripSummary";
 import { saveTrip, getAllTrips, deleteTrip as deleteTripDB } from "@utils/storage";
 
-import { t } from "@lib/styles";
+import { t, chipStyle } from "@lib/styles";
 import { STATUS_CONFIG, STOP_TYPE_CONFIG } from "@lib/config";
 
 
@@ -80,76 +80,76 @@ function Item({ trip, onDelete, onDuplicate, onRate }) {
             className="
                 flex flex-col overflow-visible 
                 border border-zinc-200 rounded-md 
-                bg-zinc-50 
+                
                 transition-colors duration-150 
             "
             onMouseEnter={(e) => (e.currentTarget.style.borderColor = t.borderMd)}
             onMouseLeave={(e) => (e.currentTarget.style.borderColor = t.border)}
         >
-        <div style={{ padding: "16px 16px 14px" }}>
+        <div style={{ background: t.bgSecondary, padding: "16px 16px 14px" }}>
 
-        {/* Top: stars + menu */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
-          <StarRating
-            rating={trip.rating}
-            onRate={(r) => onRate(trip.id, r)}
-            interactive={trip.status === "completed" || trip.status === "ongoing"}
-          />
+            {/* Top: stars + menu */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+                <StarRating
+                    rating={trip.rating}
+                    onRate={(r) => onRate(trip.id, r)}
+                    interactive={trip.status === "completed" || trip.status === "ongoing"}
+                />
 
-            {/* Context menu */}
-            <div style={{ position: "relative", flexShrink: 0 }}>
-                <button
-                onClick={() => setMenuOpen((o) => !o)}
-                style={{
-                    width: 26, height: 26, borderRadius: 6, cursor: "pointer",
-                    border: `0.5px solid ${t.border}`, background: t.bg,
-                    color: t.textHint, fontFamily: "inherit", fontSize: 14,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-                >···</button>
-                {menuOpen && (
-                <div
+                {/* Context menu */}
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                    <button
+                    onClick={() => setMenuOpen((o) => !o)}
                     style={{
-                    position: "absolute", top: 30, right: 0, zIndex: 20,
-                    background: t.bg, border: `0.5px solid ${t.border}`,
-                    borderRadius: t.radiusMd, padding: "4px 0", minWidth: 148,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+                        width: 26, height: 26, borderRadius: 6, cursor: "pointer",
+                        border: `0.5px solid ${t.border}`, background: t.bg,
+                        color: t.textHint, fontFamily: "inherit", fontSize: 14,
+                        display: "flex", alignItems: "center", justifyContent: "center",
                     }}
-                    onMouseLeave={() => setMenuOpen(false)}
-                >
-                    {[
-                    { label: "Open trip",  icon: "↗", action: () => setMenuOpen(false) },
-                    { label: "Duplicate",  icon: "⧉", action: () => { onDuplicate(trip.id); setMenuOpen(false); } },
-                    { label: "Export PDF", icon: "⬇", action: () => setMenuOpen(false) },
-                    { label: "Share",      icon: "⤴", action: () => setMenuOpen(false) },
-                    null,
-                    { label: "Delete", icon: "×", action: () => { onDelete(trip.id); setMenuOpen(false); }, danger: true },
-                    ].map((item, i) =>
-                    item === null ? (
-                        <div key={i} style={{ height: 0.5, background: t.border, margin: "4px 0" }} />
-                    ) : (
-                        <button
-                        key={item.label}
-                        onClick={item.action}
+                    >···</button>
+                    {menuOpen && (
+                    <div
                         style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            width: "100%", padding: "7px 14px",
-                            background: "transparent", border: "none", cursor: "pointer",
-                            fontSize: 13, fontFamily: "inherit",
-                            color: item?.danger ? "#A32D2D" : t.text,
-                            textAlign: "left",
+                        position: "absolute", top: 30, right: 0, zIndex: 20,
+                        background: t.bg, border: `0.5px solid ${t.border}`,
+                        borderRadius: t.radiusMd, padding: "4px 0", minWidth: 148,
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = item?.danger ? "#FCEBEB" : t.bgSecondary)}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                        >
-                        <span style={{ width: 14, textAlign: "center", flexShrink: 0 }}>{item.icon}</span>
-                        {item.label}
-                        </button>
-                    )
+                        onMouseLeave={() => setMenuOpen(false)}
+                    >
+                        {[
+                        { label: "Open trip",  icon: "↗", action: () => setMenuOpen(false) },
+                        { label: "Duplicate",  icon: "⧉", action: () => { onDuplicate(trip.id); setMenuOpen(false); } },
+                        { label: "Export PDF", icon: "⬇", action: () => setMenuOpen(false) },
+                        { label: "Share",      icon: "⤴", action: () => setMenuOpen(false) },
+                        null,
+                        { label: "Delete", icon: "×", action: () => { onDelete(trip.id); setMenuOpen(false); }, danger: true },
+                        ].map((item, i) =>
+                        item === null ? (
+                            <div key={i} style={{ height: 0.5, background: t.border, margin: "4px 0" }} />
+                        ) : (
+                            <button
+                            key={item.label}
+                            onClick={item.action}
+                            style={{
+                                display: "flex", alignItems: "center", gap: 8,
+                                width: "100%", padding: "7px 14px",
+                                background: "transparent", border: "none", cursor: "pointer",
+                                fontSize: 13, fontFamily: "inherit",
+                                color: item?.danger ? "#A32D2D" : t.text,
+                                textAlign: "left",
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = item?.danger ? "#FCEBEB" : t.bgSecondary)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                            >
+                            <span style={{ width: 14, textAlign: "center", flexShrink: 0 }}>{item.icon}</span>
+                            {item.label}
+                            </button>
+                        )
+                        )}
+                    </div>
                     )}
                 </div>
-                )}
-            </div>
             </div>
 
             {/* Title */}
@@ -218,12 +218,7 @@ function Item({ trip, onDelete, onDuplicate, onRate }) {
     );
 }
 
-const chipStyle = {
-  display: "inline-flex", alignItems: "center", gap: 4,
-  fontSize: 11, color: t.textMuted,
-  background: t.bgSecondary, border: `0.5px solid ${t.border}`,
-  borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap",
-};
+
 
 // ─── Page root ────────────────────────────────────────────────────────────────
 
