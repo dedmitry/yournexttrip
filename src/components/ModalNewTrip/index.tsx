@@ -1,5 +1,7 @@
 import React, { ReactNode, useState } from "react";
 
+import FormField from "@/components/FormField";
+
 import { Trip } from "@types/trip";
 
 import { calculateTripDays } from "@/utils/tripSummary";
@@ -10,22 +12,7 @@ import { t } from "@/lib/styles";
 type StatusKey = keyof typeof STATUS_CONFIG;
 
 
-function FormField({ 
-    label, 
-    children, 
-    style 
-} : {
-    label: ReactNode;
-    children: ReactNode;
-    style?: React.CSSProperties;
-}) {
-    return (
-        <div style={style}>
-            <label style={{ fontSize: 11, color: t.textMuted, display: "block", marginBottom: 4 }}>{label}</label>
-            {children}
-        </div>
-    );
-}
+
 
 // ─── NewTripModal ─────────────────────────────────────────────────────────────
 

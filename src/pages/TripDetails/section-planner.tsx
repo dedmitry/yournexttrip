@@ -1,8 +1,13 @@
 import React, { useState, ReactNode, CSSProperties } from "react";
 
+import FormField from "@/components/FormField";
+
 import { TripStop, TripMeta, StopId, StopType } from "@/types/trip";
 
-import { t, STOP_TYPE_CONFIG } from "@/lib/config";
+import { formatBudget } from "@/utils/tripSummary";
+
+import { t, inputStyle, saveBtnStyle, cancelBtnStyle } from "@/lib/styles";
+import { STOP_TYPE_CONFIG } from "@/lib/config";
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -19,41 +24,6 @@ function getDayLabel(day: number, dateFrom: string | Date) {
   } catch {
     return `Day ${day}`;
   }
-}
-
-const inputStyle = {
-  width: "100%", fontSize: 13, padding: "6px 10px",
-  border: `1px solid ${t.borderMd}`, borderRadius: t.radiusSm,
-  fontFamily: "inherit", background: t.bg, color: t.text, outline: "none",
-};
-
-const saveBtnStyle = {
-  fontSize: 13, padding: "5px 14px", borderRadius: t.radiusSm,
-  border: `0.5px solid ${t.borderHeavy}`, background: t.text, color: t.bg,
-  cursor: "pointer", fontFamily: "inherit",
-};
-
-const cancelBtnStyle = {
-  fontSize: 13, padding: "5px 12px", borderRadius: t.radiusSm,
-  border: `0.5px solid ${t.border}`, background: "transparent",
-  color: t.textMuted, cursor: "pointer", fontFamily: "inherit",
-};
-
-function Field({ 
-    label, 
-    children, 
-    style 
-} : {
-    label: string;
-    children: ReactNode;
-    style?: CSSProperties;
-}) {
-  return (
-    <div style={style}>
-      <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>{label}</label>
-      {children}
-    </div>
-  );
 }
 
 
@@ -143,6 +113,7 @@ function StopCard({
                     border: `1px solid ${isOpen ? t.borderHeavy : t.border}`,
                     borderRadius: t.radiusMd, overflow: "hidden", transition: "border-color .15s",
                 }}>
+
                 {/* Row */}
                 <div 
                     onClick={handleToggle} 
@@ -183,11 +154,11 @@ function StopCard({
                             </span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            {stop.duration && (
+                            {stop.duration !== '' && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: t.textMuted, background: t.bgSecondary, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>⏱ {stop.duration}</span>
                             )}
-                            {stop.budget && (
-                            <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{stop.budget}</span>
+                            {stop.budget !== '' && (
+                            <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{formatBudget(stop.budget)}</span>
                             )}
                             {stop.link && (
                             <a href={stop.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} title="Open link" style={{
@@ -210,36 +181,36 @@ function StopCard({
                 {isOpen && (
                     <div style={{ borderTop: `1px solid ${t.border}`, padding: "12px 14px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
-                            <Field label="Type">
+                            <FormField label="Type">
                                 <select 
                                     value={stop.type} 
                                     onChange={(e) => onSave({
-            ...stop,
-            type: e.target.value as StopType,
-        })} 
-                                    style={inputStyle}
+                                        ...stop,
+                                        type: e.target.value as StopType,
+                                    })} 
+                                    style={{...inputStyle, height: "33.5px"}}
                                 >
                                     <option value="transport">Transport</option>
                                     <option value="hotel">Hotel</option>
                                     <option value="place">Place</option>
                                     <option value="food">Restaurant</option>
                                 </select>
-                            </Field>
-                            <Field label="Time">
+                            </FormField>
+                            <FormField label="Time">
                                 <input 
                                     type="time"
                                     value={stop.time} 
                                     onChange={(e) => onSave({ ...stop, time: e.target.value })} 
-                                    style={inputStyle} placeholder="Sep 3 · 11:00" 
+                                    style={{...inputStyle, padding: "5px 10px"}} placeholder="Sep 3 · 11:00" 
                                 />
-                            </Field>
+                            </FormField>
                         </div>
-                        <Field label="Name" style={{ marginBottom: 9 }}>
+                        <FormField label="Name" style={{ marginBottom: 9 }}>
                             <input value={stop.name} onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
-                        </Field>
-                        <Field label="Address / details" style={{ marginBottom: 9 }}>
+                        </FormField>
+                        <FormField label="Address / details" style={{ marginBottom: 9 }}>
                             <input value={stop.details} onChange={(e) => onSave({ ...stop, details: e.target.value })} style={inputStyle} />
-                        </Field>
+                        </FormField>
                         <div style={{ marginBottom: 9 }}>
                             <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>Link (maps / info)</label>
                             <div style={{ display: "flex", gap: 6 }}>
@@ -268,27 +239,27 @@ function StopCard({
                             </div>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
-                            <Field label="Budget / cost">
+                            <FormField label="Budget / cost">
                             <input 
                                 value={stop.budget} 
-                                onChange={(e) => onSave({ ...stop, budget: Number(e.target.value) })} 
+                                onChange={(e) => onSave({ ...stop, budget: e.target.value })} 
                                 style={inputStyle} 
                                 placeholder="e.g. $45 or Free" 
                             />
-                            </Field>
-                            <Field label="Duration">
+                            </FormField>
+                            <FormField label="Duration">
                             <input 
                                 value={stop.duration} 
-                                onChange={(e) => onSave({ ...stop, duration: Number(e.target.value) })} 
+                                onChange={(e) => onSave({ ...stop, duration: e.target.value })} 
                                 style={inputStyle} 
                                 placeholder="e.g. 2h 30m" 
                                 />
-                            </Field>
+                            </FormField>
                         </div>
-                        <Field label="Notes">
+                        <FormField label="Notes">
                             <textarea value={stop.notes} onChange={(e) => onSave({ ...stop, notes: e.target.value })}
                             style={{ ...inputStyle, resize: "vertical", minHeight: 52 }} placeholder="Any extra info…" />
-                        </Field>
+                        </FormField>
                     </div>
                 )}
                 </div>

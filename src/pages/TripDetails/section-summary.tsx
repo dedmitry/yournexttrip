@@ -2,41 +2,13 @@ import React, { useState } from "react";
 
 import { StopType, TripMeta, TripStop, Trip } from "@/types/trip";
 
-import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops } from "@/utils/tripSummary";
+import { tripTripRange, calculateTripDays, totalTripBudget, formatBudget, countTripStops } from "@/utils/tripSummary";
 
 import { t } from "@lib/styles";
 import { STOP_TYPE_CONFIG } from "@/lib/config";
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function countByType(stops: TripStop[]) {
-    return stops.reduce<Record<StopType, number>>(
-        (acc, s) => ({
-            ...acc,
-            [s.type]: acc[s.type] + 1,
-        }),
-        {
-            transport: 0,
-            hotel: 0,
-            place: 0,
-            restaurant: 0,
-        }
-    );
-}
-
-function totalBudget(stops: TripStop[]) {
-    const sum = stops.reduce(
-        (acc, stop) => acc + stop.budget,
-        0
-    );
-
-    if (sum === 0) return "—";
-
-    return sum >= 1000
-        ? `$${(sum / 1000).toFixed(1)}k`
-        : `$${Math.round(sum)}`;
-}
 
 function Chip({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
@@ -98,6 +70,7 @@ export default function TripHeaderCard({
     
     const tripDays = calculateTripDays(trip.meta.dateFrom, trip.meta.dateTo);
     const tripStats = countTripStops(trip.stops);
+    const totalBudget = totalTripBudget(trip.stops);
 
     return (
         <div style={{
@@ -194,7 +167,7 @@ export default function TripHeaderCard({
                         <Chip>📍 {trip.meta.destination}</Chip>
                         }
                         <Chip>👥 {trip.meta.travelers} travelers</Chip>
-                        <Chip>💰 {totalTripBudget(trip.stops)}</Chip>
+                        <Chip>💰 {formatBudget(totalBudget)}</Chip>
                     </div>
                 </div>
                 

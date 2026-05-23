@@ -78,6 +78,16 @@ export function calculateTotalBudget(
   return hasAny ? sum : null;
 }
 
+export function formatBudget(value?: number | strimg | null): string {
+  if (value == null) return "-";
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 export type BudgetFormatMode = "raw" | "formatted";
 
 export function totalTripBudget(

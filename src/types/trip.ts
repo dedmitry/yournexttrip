@@ -30,8 +30,8 @@ export type TripStop = {
     name: string;
     details: string;
     link: string;
-    budget: number;
-    duration: number;
+    budget: string;
+    duration: string;
     travelNext: string;
     notes: string;
 };
@@ -44,8 +44,8 @@ export const initialTripStop: TripStop = {
     name: "",
     details: "",
     link: "",
-    budget: 0,
-    duration: 0,
+    budget: "",
+    duration: "",
     travelNext: "", 
     notes: "",
 };
