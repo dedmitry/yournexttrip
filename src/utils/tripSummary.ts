@@ -48,21 +48,16 @@ export function calculateTripDays(
 }
 
 
-export function parseBudgetValue(budget?: string): number | null {
-  if (!budget) return null;
+export function parseBudgetValue(budget?: unknown): number | null {
+  if (typeof budget !== "string") return null;
 
-  const lower = budget.toLowerCase().trim();
-
-  if (lower === "free") return 0;
-
-  // remove commas, extract first numeric value
   const match = budget.replace(/,/g, "").match(/[\d.]+/);
 
   if (!match) return null;
 
   const value = Number(match[0]);
 
-  return isNaN(value) ? null : value;
+  return Number.isNaN(value) ? null : value;
 }
 
 export function calculateTotalBudget(

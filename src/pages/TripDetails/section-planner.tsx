@@ -140,7 +140,7 @@ function StopCard({
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                     background: t.bg,
-                    border: `1px solid ${isOpen ? t.borderHeavy : t.borderMd}`,
+                    border: `1px solid ${isOpen ? t.borderHeavy : t.border}`,
                     borderRadius: t.radiusMd, overflow: "hidden", transition: "border-color .15s",
                 }}>
                 {/* Row */}
@@ -208,7 +208,7 @@ function StopCard({
 
                 {/* Edit form */}
                 {isOpen && (
-                    <div style={{ borderTop: `0.5px solid ${t.border}`, padding: "12px 14px" }}>
+                    <div style={{ borderTop: `1px solid ${t.border}`, padding: "12px 14px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 9 }}>
                             <Field label="Type">
                                 <select 
