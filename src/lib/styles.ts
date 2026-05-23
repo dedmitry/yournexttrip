@@ -21,7 +21,7 @@
  
 export const inputStyle = {
     width: "100%", fontSize: 13, padding: "6px 10px",
-    border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
+    border: `0.5px solid ${t.borderMd}`, borderRadius: t.radiusSm,
     fontFamily: "inherit", background: t.bg, color: t.text, outline: "none",
 };
  
