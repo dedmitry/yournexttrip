@@ -101,7 +101,7 @@ function StopCard({
             key={title} onClick={action} title={title} aria-label={title}
             style={{
                 width: 24, height: 24, borderRadius: 6,
-                border: `0.5px solid ${t.border}`, background: "transparent",
+                border: `1px solid ${t.border}`, background: "transparent",
                 cursor: "pointer", color: t.textMuted,
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12,
             }}
