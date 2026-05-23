@@ -23,7 +23,7 @@ function getDayLabel(day: number, dateFrom: string | Date) {
 
 const inputStyle = {
   width: "100%", fontSize: 13, padding: "6px 10px",
-  border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
+  border: `1px solid ${t.borderMd}`, borderRadius: t.radiusSm,
   fontFamily: "inherit", background: t.bg, color: t.text, outline: "none",
 };
 
@@ -140,7 +140,7 @@ function StopCard({
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                     background: t.bg,
-                    border: `0.5px solid ${isOpen ? t.borderHeavy : t.border}`,
+                    border: `1px solid ${isOpen ? t.borderHeavy : t.borderMd}`,
                     borderRadius: t.radiusMd, overflow: "hidden", transition: "border-color .15s",
                 }}>
                 {/* Row */}
@@ -369,7 +369,7 @@ function DayDivider({
                     whiteSpace: "nowrap", borderRadius: 20, padding: "4px 12px",
                     background: isCurrent ? "#378ADD" : t.bgSecondary,
                     color: isCurrent ? "#ffffff" : t.textMuted,
-                    border: isCurrent ? "none" : `0.5px solid ${t.border}`,
+                    border: isCurrent ? "none" : `1px solid ${t.border}`, 
                     display: "inline-flex", alignItems: "center", gap: 6,
                 }}>
                     {isCurrent ? "▶" : "☀"} {displayLabel}
@@ -380,7 +380,7 @@ function DayDivider({
                     }}>Today</span>
                     )}
                 </span>
-            <div style={{ flex: 1, height: isCurrent ? 1 : 0.5, background: isCurrent ? "#378ADD" : t.border }} />
+            <div style={{ flex: 1, height: isCurrent ? 1 : 1, background: isCurrent ? "#378ADD" : t.border }} />
         </div>
     );
 }
