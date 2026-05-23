@@ -29,16 +29,18 @@ export default function PageToolbar({ tripTitle, activeTab, onTabChange }: {
             `}</style>
             <div className="toolbar-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                 <h1 style={{
-                    fontSize: 26, fontWeight: 700, fontFamily: "Georgia, 'Times New Roman', serif", color: t.text,
+                    fontSize: 26, fontWeight: 800, 
+                    //fontFamily: "Georgia, 'Times New Roman', serif", 
+                    color: t.text,
                     letterSpacing: "-0.4px", margin: 0,
                     display: "flex", alignItems: "center", gap: 8,
                     maxWidth: "100%", minWidth: 0, overflow: "hidden", flex: 1,
                 }}>
-                    <Link to="/" style={{ color: t.textMuted, textDecoration: "none", fontWeight: 700, flexShrink: 0 }}
+                    <Link to="/" style={{ color: t.textMuted, textDecoration: "none", fontWeight: 800, flexShrink: 0 }}
                         onMouseEnter={(e) => (e.currentTarget as HTMLAnchorElement).style.color = t.text}
                         onMouseLeave={(e) => (e.currentTarget as HTMLAnchorElement).style.color = t.textMuted}
                     >My Trips</Link>
-                    <span style={{ color: t.textHint, fontWeight: 700, flexShrink: 0 }}>›</span>
+                    <span style={{ color: t.textHint, fontWeight: 800, flexShrink: 0 }}>›</span>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{tripTitle}</span>
                 </h1>
                 

@@ -1,7 +1,7 @@
  
  export const t = {
      bg:          "var(--color-background-primary,   #ffffff)",
-     bgSecondary: "var(--color-background-secondary, #f9f9f8)",
+     bgSecondary: "var(--color-background-secondary, #f3f3f1)",
      bgTertiary:  "var(--color-background-tertiary,  #f3f3f1)",
      text:        "var(--color-text-primary,          #111111)",
      textMuted:   "var(--color-text-secondary,        #666666)",

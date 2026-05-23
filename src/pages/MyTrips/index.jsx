@@ -64,7 +64,7 @@ function Item({ trip, onDelete, onDuplicate, onRate }) {
 
     const tripDays = calculateTripDays(trip.meta.dateFrom, trip.meta.dateTo);
     const tripStats = countTripStops(trip.stops);
-console.log(trip.meta.dateFrom, trip.meta.dateTo)
+
     // Distribute stops evenly across the 4 types for display purposes
     const perType = Math.floor(trip.meta.stops / 4);
     const rem     = trip.meta.stops % 4;
@@ -301,7 +301,8 @@ export default function MyTrips() {
             <main className="flex-1 flex flex-col w-full max-w-[1120px] mx-auto px-3 py-6">
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
                     <h1 style={{
-                        fontSize: 26, fontWeight: 700, fontFamily: "Georgia, 'Times New Roman', serif", 
+                        fontSize: 26, fontWeight: 800, 
+                        //fontFamily: "Georgia, 'Times New Roman', serif", 
                         color: t.text, letterSpacing: "-0.4px", 
                         margin: 0,
                     }}>My Trips</h1>
