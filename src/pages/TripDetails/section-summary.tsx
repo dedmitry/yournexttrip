@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { StopType, TripMeta, TripStop, Trip } from "@/types/trip";
+import { Trip } from "@/types/trip";
 
 import { tripTripRange, calculateTripDays, totalTripBudget, formatBudget, countTripStops } from "@/utils/tripSummary";
 
@@ -11,13 +11,13 @@ import { STOP_TYPE_CONFIG } from "@/lib/config";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function Chip({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      background: t.bg, border: `0.5px solid ${t.border}`,
-      borderRadius: 20, padding: "4px 11px", fontSize: 12, color: t.textMuted, ...style,
-    }}>{children}</span>
-  );
+    return (
+        <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            background: t.bg, border: `0.5px solid ${t.border}`,
+            borderRadius: 20, padding: "4px 11px", fontSize: 12, color: t.textMuted, ...style,
+        }}>{children}</span>
+    );
 }
 
  
@@ -67,10 +67,20 @@ export default function TripHeaderCard({
     onRate: (rating: number) => void;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
+
+    const menuItems = [
+        { label: "Share",      icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49"/></svg> },
+        { label: "Export PDF", icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg> },
+        { label: "Duplicate",  icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> },
+        null,
+        { label: "Delete",     icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M8 6V4h8v2"/></svg>, danger: true },
+    ];
     
     const tripDays = calculateTripDays(trip.meta.dateFrom, trip.meta.dateTo);
     const tripStats = countTripStops(trip.stops);
     const totalBudget = totalTripBudget(trip.stops);
+
+    type StopType = keyof typeof STOP_TYPE_CONFIG;
 
     return (
         <div style={{
@@ -80,7 +90,7 @@ export default function TripHeaderCard({
             {/* Top: stars + menu */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
                 <StarRating
-                    rating={trip.meta.rating}
+                    rating={trip.meta.rating ?? undefined}
                     onRate={(r) => onRate(r)}
                     interactive={trip.meta.status === "completed" || trip.meta.status === "ongoing"}
                 />
@@ -138,17 +148,6 @@ export default function TripHeaderCard({
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    {trip.meta.flag && trip.meta.region &&
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{
-                        width: 28, height: 28, borderRadius: "50%", background: t.bg,
-                        border: `0.5px solid ${t.border}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 16, flexShrink: 0,
-                        }}>{trip.meta.flag}</div>
-                        <span style={{ fontSize: 13, color: t.textMuted }}>{trip.meta.region}</span>     
-                    </div>
-                    }       
                     <input
                         value={trip.meta.title}
                         //onChange={(e) => onTitleChange(e.target.value)}
@@ -163,7 +162,7 @@ export default function TripHeaderCard({
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         <Chip>📅 {tripTripRange(trip.meta.dateFrom, trip.meta.dateTo)}</Chip>
                         <Chip>⏱ {tripDays} days</Chip>
-                        {trip.meta.destination &&
+                        {trip.meta?.destination &&
                         <Chip>📍 {trip.meta.destination}</Chip>
                         }
                         <Chip>👥 {trip.meta.travelers} travelers</Chip>
@@ -177,26 +176,26 @@ export default function TripHeaderCard({
                 display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8,
                 borderTop: `1px solid ${t.borderMd}`, paddingTop: 14,
             }}>
-                {Object.keys(STOP_TYPE_CONFIG).map((type, i, arr) => {
+                {(Object.keys(STOP_TYPE_CONFIG) as StopType[]).map((type, i, arr) => {
                     const cfg = STOP_TYPE_CONFIG[type];
                     return (
                     <div key={type} style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 18, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, fontSize: 11, color: t.textMuted, marginTop: 2 }}>
-                        {cfg.label === 'Transits' &&
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-route-icon lucide-route"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
-                        }
-                        {cfg.label === 'Stays' &&
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hotel-icon lucide-hotel"><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 16a5 5 0 0 0-6 0"/><path d="M16 11h.01"/><path d="M16 7h.01"/><path d="M8 11h.01"/><path d="M8 7h.01"/><rect x="4" y="2" width="16" height="20" rx="2"/></svg>
-                        }
-                        {cfg.label === 'Places' &&
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-                        }
-                        {cfg.label === 'Food' &&
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-utensils-icon lucide-utensils"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-                        }
-                         {cfg.label}
-                    </div>
+                        <div style={{ fontSize: 18, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
+                        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, fontSize: 11, color: t.textMuted, marginTop: 2 }}>
+                            {cfg.label === 'Transits' &&
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-route-icon lucide-route"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+                            }
+                            {cfg.label === 'Stays' &&
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-hotel-icon lucide-hotel"><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 16a5 5 0 0 0-6 0"/><path d="M16 11h.01"/><path d="M16 7h.01"/><path d="M8 11h.01"/><path d="M8 7h.01"/><rect x="4" y="2" width="16" height="20" rx="2"/></svg>
+                            }
+                            {cfg.label === 'Places' &&
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                            }
+                            {cfg.label === 'Food' &&
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-utensils-icon lucide-utensils"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                            }
+                            {cfg.label}
+                        </div>
                     </div>
                 );
                 })}

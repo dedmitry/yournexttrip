@@ -4,7 +4,7 @@ export type StopType = "transit" | "stay" | "place" | "food";// | "activity" | "
 export type TripMeta = {
     title: string;
     //flag: string;
-    //destination: string;
+    destination: string;
     //region: string;
     dateFrom: string;
     dateTo: string;
@@ -15,6 +15,7 @@ export type TripMeta = {
 
 export const initialTripMeta: TripMeta = {
     title: "",
+    destination: "",
     dateFrom: "",
     dateTo: "",
     travelers: 1,
