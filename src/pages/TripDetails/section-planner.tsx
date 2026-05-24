@@ -1,8 +1,8 @@
-import React, { useState, ReactNode, CSSProperties } from "react";
+import React, { useState } from "react";
 
 import FormField from "@/components/FormField";
 
-import { TripStop, TripMeta, StopId, StopType } from "@/types/trip";
+import { TripStop, initialTripStop, TripMeta, StopId, StopType } from "@/types/trip";
 
 import { formatBudget } from "@/utils/tripSummary";
 
@@ -190,10 +190,10 @@ function StopCard({
                                     })} 
                                     style={{...inputStyle, height: "33.5px"}}
                                 >
-                                    <option value="transport">Transport</option>
-                                    <option value="hotel">Hotel</option>
+                                    <option value="transit">Transit</option>
+                                    <option value="stay">Stay</option>
                                     <option value="place">Place</option>
-                                    <option value="food">Restaurant</option>
+                                    <option value="food">Food</option>
                                 </select>
                             </FormField>
                             <FormField label="Time">
@@ -226,14 +226,14 @@ function StopCard({
                                 rel="noopener noreferrer"
                                 title="Open link"
                                 style={{
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                width: 36, flexShrink: 0, borderRadius: t.radiusSm,
-                                border: `0.5px solid ${stop.link ? t.borderMd : t.border}`,
-                                background: stop.link ? t.text : t.bgSecondary,
-                                color: stop.link ? t.bg : t.textHint,
-                                fontSize: 13, textDecoration: "none",
-                                pointerEvents: stop.link ? "auto" : "none",
-                                transition: "background .15s, color .15s",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    width: 36, flexShrink: 0, borderRadius: t.radiusSm,
+                                    border: `0.5px solid ${stop.link ? t.borderMd : t.border}`,
+                                    background: stop.link ? t.text : t.bgSecondary,
+                                    color: stop.link ? t.bg : t.textHint,
+                                    fontSize: 13, textDecoration: "none",
+                                    pointerEvents: stop.link ? "auto" : "none",
+                                    transition: "background .15s, color .15s",
                                 }}
                             >↗</a>
                             </div>
@@ -396,7 +396,20 @@ function AddBar({
                             background: t.bg, color: t.textMuted, 
                             cursor: "pointer", padding: compact ? "3px 9px" : "4px 11px", 
                         }}
-                    >{cfg.icon} {cfg.label}</button>
+                    >
+                        {cfg.label === 'Transits' &&
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-route-icon lucide-route"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+                        }
+                        {cfg.label === 'Stays' &&
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hotel-icon lucide-hotel"><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 16a5 5 0 0 0-6 0"/><path d="M16 11h.01"/><path d="M16 7h.01"/><path d="M8 11h.01"/><path d="M8 7h.01"/><rect x="4" y="2" width="16" height="20" rx="2"/></svg>
+                        }
+                        {cfg.label === 'Places' &&
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                        }
+                        {cfg.label === 'Food' &&
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-utensils-icon lucide-utensils"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                        }
+                         {cfg.label}</button> 
                 );
                 })}
             </div>
@@ -441,17 +454,11 @@ export default function TripPlanner({
 
 		const cfg = STOP_TYPE_CONFIG[type];
 		const newStop: TripStop = {
+            ...initialTripStop, 
             id: nextId, 
             day, 
-            type, 
-            time: "", 
+            type,
             name: `New ${cfg.label.toLowerCase()}`, 
-            details: "", 
-            link: "", 
-            budget: 0, 
-            duration: 0, 
-            travelNext: "", 
-            notes: "" 
         };
 
         const next = [...stops, newStop];
@@ -498,17 +505,9 @@ export default function TripPlanner({
 		setNextId((n) => n + 1);
 		
         const newStop: TripStop = {
+            ...initialTripStop,
             id: nextId, 
             day: newDay, 
-            type: "place", 
-            time: "", 
-            name: "New stop", 
-            details: "", 
-            link: "", 
-            budget: 0, 
-            duration: 0, 
-            travelNext: "", 
-            notes: "" 
         };
 
         updateStops([...stops, newStop]);

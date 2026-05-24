@@ -33,8 +33,10 @@ export const STATUS_CONFIG = {
 };
 
 export const STOP_TYPE_CONFIG = {
-    transport: { icon: "✈", label: "Moves", bg: "#E6F1FB", color: "#0C447C", dotColor: "#85B7EB", badgeBg: "#E6F1FB", badgeText: "#0C447C", iconBg: "#E6F1FB", iconColor: "#0C447C" },
-    hotel:     { icon: "⌂", label: "Stays", bg: "#EEEDFE", color: "#3C3489", dotColor: "#AFA9EC", badgeBg: "#EEEDFE", badgeText: "#3C3489", iconBg: "#EEEDFE", iconColor: "#3C3489" },
-    place:     { icon: "◎", label: "Places", bg: "#EAF3DE", color: "#27500A", dotColor: "#97C459", badgeBg: "#EAF3DE", badgeText: "#27500A", iconBg: "#EAF3DE", iconColor: "#27500A" },
-    restaurant:{ icon: "⊕", label: "Food", bg: "#FAEEDA", color: "#633806", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
+    transit: { icon: "✈", label: "Transits", bg: "#E6F1FB", color: "#0C447C", dotColor: "#85B7EB", badgeBg: "#E6F1FB", badgeText: "#0C447C", iconBg: "#E6F1FB", iconColor: "#0C447C" },
+    stay: { icon: "⌂", label: "Stays", bg: "#EEEDFE", color: "#3C3489", dotColor: "#AFA9EC", badgeBg: "#EEEDFE", badgeText: "#3C3489", iconBg: "#EEEDFE", iconColor: "#3C3489" },
+    place: { icon: "◎", label: "Places", bg: "#EAF3DE", color: "#27500A", dotColor: "#97C459", badgeBg: "#EAF3DE", badgeText: "#27500A", iconBg: "#EAF3DE", iconColor: "#27500A" },
+    //activity: { icon: "⊕", label: "Activities", bg: "#FAEEDA", color: "#633806", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
+    food: { icon: "⊕", label: "Food", bg: "#FAEEDA", color: "#633806", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
+    //other: { icon: "⊕", label: "Other", bg: "#F1EFE8", color: "#5F5E5A", dotColor: "#C9C7C4", badgeBg: "#F1EFE8", badgeText: "#5F5E5A", iconBg: "#F1EFE8", iconColor: "#5F5E5A" },
 };

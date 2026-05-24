@@ -1,5 +1,5 @@
 
-export type StopType = "transport" | "hotel" | "place" | "restaurant"
+export type StopType = "transit" | "stay" | "place" | "food";// | "activity" | "other"
 
 export type TripMeta = {
     title: string;
@@ -41,7 +41,7 @@ export const initialTripStop: TripStop = {
     day: 0,
     type: "place",
     time: "",
-    name: "",
+    name: "New stop",
     details: "",
     link: "",
     budget: "",

@@ -61,31 +61,36 @@ export function parseBudgetValue(budget?: unknown): number | null {
 }
 
 export function calculateTotalBudget(
-  stops: { budget?: string }[]
+    stops: { budget?: string }[]
 ): number | null {
-  let sum = 0;
-  let hasAny = false;
+    let sum = 0;
+    let hasAny = false;
 
-  for (const stop of stops) {
-    const value = parseBudgetValue(stop.budget);
+    for (const stop of stops) {
+        const value = parseBudgetValue(stop.budget);
 
-    if (value === null) continue;
+        if (value === null) continue;
 
-    sum += value;
-    hasAny = true;
-  }
+        sum += value;
+        hasAny = true;
+    }
 
-  return hasAny ? sum : null;
+    return hasAny ? sum : null;
 }
 
-export function formatBudget(value?: number | strimg | null): string {
-  if (value == null) return "-";
+export function formatBudget(value?: number | string | null): string {
+    if (value == null || value === "") return "-";
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+    const amount =
+      typeof value === "string" ? Number(value.replace(/,/g, "")) : value;
+
+    if (Number.isNaN(amount)) return "-";
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(amount);
 }
 
 export type BudgetFormatMode = "raw" | "formatted";
@@ -109,75 +114,68 @@ export function totalTripBudget(
 
 
 // utils/stops.ts
-
 export type StopType =
-  | "transport"
-  | "hotel"
+  | "transit"
+  | "stay"
   | "place"
-  | "restaurant"
-  | "activity"
-  | "other";
+  | "food";
+//  | "other";
+//  | "activity"
 
 export type TripStop = {
-  id?: string | number;
-  type?: StopType;
+    id?: string | number;
+    type?: StopType;
 };
 
 export type StopCounts = {
-  total: number;
+    total: number;
 
-  transport: number;
-  hotel: number;
-  place: number;
-  restaurant: number;
-
-  activities: number;
-  other: number;
+    transit: number;
+    stay: number;
+    place: number;
+    food: number;
 };
 
 /**
  * Counts stops by category.
  */
 export function countTripStops(stops: TripStop[]): StopCounts {
-  const counts: StopCounts = {
-    total: stops.length,
+    const counts: StopCounts = {
+        total: stops.length,
 
-    transport: 0,
-    hotel: 0,
-    place: 0,
-    restaurant: 0,
+        transit: 0,
+        stay: 0,
+        place: 0,
+        food: 0,
+    };
 
-    activities: 0,
-    other: 0,
-  };
+    for (const stop of stops) {
+        switch (stop.type) {
+        case "transit":
+            counts.transit++;
+            break;
 
-  for (const stop of stops) {
-    switch (stop.type) {
-      case "transport":
-        counts.transport++;
-        break;
+        case "stay":
+            counts.stay++;
+            break;
 
-      case "hotel":
-        counts.hotel++;
-        break;
+        case "place":
+            counts.place++;
+            break;
 
-      case "place":
-        counts.place++;
-        break;
+        case "food":
+            counts.food++;
+            break;
 
-      case "restaurant":
-        counts.restaurant++;
-        break;
+        /*case "activity":
+            counts.activities++;
+            break;
 
-      case "activity":
-        counts.activities++;
-        break;
-
-      default:
-        counts.other++;
-        break;
+        default:
+            counts.other++;
+            break;*/
+        }
     }
-  }
 
-  return counts;
+    return counts;
 }
