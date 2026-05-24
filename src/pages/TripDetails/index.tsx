@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import Header from "@/components/PageHeader";
@@ -80,11 +80,11 @@ export default function TripDetail() {
         }, [trip.id]
     );
 
-    const updateMeta = useCallback(
+    /*const updateMeta = useCallback(
         (updatedMeta: TripMeta) => {
             updateTrip(trip.stops, updatedMeta, trip.checklist, trip.notes);
         },[trip, updateTrip]
-    );
+    );*/
 
     const updateStops = useCallback(
         (updatedStops: TripStop[]) => {
