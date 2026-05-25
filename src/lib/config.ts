@@ -40,3 +40,28 @@ export const STOP_TYPE_CONFIG = {
     food: { icon: "⊕", label: "Food", bg: "#FAEEDA", color: "#633806", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806", iconBg: "#FAEEDA", iconColor: "#633806" },
     //other: { icon: "⊕", label: "Other", bg: "#F1EFE8", color: "#5F5E5A", dotColor: "#C9C7C4", badgeBg: "#F1EFE8", badgeText: "#5F5E5A", iconBg: "#F1EFE8", iconColor: "#5F5E5A" },
 };
+
+export const TRANSPORT_SUBTYPES = [
+  { value: "Plane", label: "Plane" },
+  { value: "Train", label: "Train" },
+  { value: "Bus",   label: "Bus" },
+  { value: "Ship",  label: "Ship" },
+];
+ 
+export const FOOD_SUBTYPES = [
+  { value: "Restaurant", label: "Restaurant" },
+  { value: "Street Food", label: "Street Food" },
+  { value: "Market", label: "Market" },
+];
+ 
+export const PLACE_SUBTYPES = [
+  { value: "Activities", label: "Activities" },
+  { value: "Attractions",  label: "Attractions"  },
+  { value: "Hiking", label: "Hiking"   },
+];
+ 
+export const STAY_SUBTYPES = [
+  { value: "Hotel",  label: "Hotel" },
+  { value: "Apartment", label: "Apartment" },
+  { value: "Other", label: "Other" },
+];

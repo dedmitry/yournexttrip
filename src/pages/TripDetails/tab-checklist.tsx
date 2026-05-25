@@ -69,7 +69,7 @@ export default function ChecklistTab({
         <div style={{ maxWidth: 720, margin: "0 auto", padding: "0px 0px 40px" }}>
         {/* Progress bar */}
         <div style={{
-            background: t.bgSecondary, border: `0.5px solid ${t.border}`,
+            background: t.bgSecondary, border: `1px solid ${t.border}`,
             borderRadius: t.radiusMd, padding: "14px 18px", marginBottom: 20,
         }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -106,14 +106,14 @@ export default function ChecklistTab({
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "9px 12px",
                     background: item.checked ? t.bgSecondary : t.bg,
-                    border: `0.5px solid ${t.border}`, borderRadius: t.radiusSm,
+                    border: `1px solid ${t.border}`, borderRadius: t.radiusSm,
                     transition: "background .15s",
                     }}>
                     <button
                         onClick={() => toggle(item.id)}
                         style={{
                         width: 18, height: 18, borderRadius: 5, flexShrink: 0,
-                        border: `0.5px solid ${item.checked ? "#97C459" : t.borderMd}`,
+                        border: `1px solid ${item.checked ? "#97C459" : t.borderMd}`,
                         background: item.checked ? "#97C459" : "transparent",
                         cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                         color: "#fff", fontSize: 11, transition: "all .15s",
@@ -129,7 +129,7 @@ export default function ChecklistTab({
                         title="Remove"
                         style={{
                         width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                        border: `0.5px solid ${t.border}`, background: "transparent",
+                        border: `1px solid ${t.border}`, background: "transparent",
                         cursor: "pointer", color: t.textHint, fontSize: 12,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         }}
@@ -156,7 +156,7 @@ export default function ChecklistTab({
         {/* Add item */}
         {addOpen ? (
             <div style={{
-            background: t.bgSecondary, border: `0.5px solid ${t.border}`,
+            background: t.bgSecondary, border: `1px solid ${t.border}`,
             borderRadius: t.radiusMd, padding: "12px 14px", marginTop: 8,
             display: "flex", flexDirection: "column", gap: 9,
             }}>
@@ -183,13 +183,31 @@ export default function ChecklistTab({
         ) : (
             <button
             onClick={() => setAddOpen(true)}
-            style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                width: "100%", marginTop: 8, padding: "9px 12px",
-                background: "transparent", border: `0.5px dashed ${t.borderMd}`,
-                borderRadius: t.radiusMd, cursor: "pointer", fontFamily: "inherit",
-                fontSize: 13, color: t.textMuted, transition: "background .12s, color .12s",
-            }}
+  className="
+    flex items-center justify-center gap-[7px]
+    w-full mt-2
+    px-3 py-[9px]
+    border border-dashed
+    rounded-md
+    cursor-pointer
+    text-[13px]
+    transition-colors duration-100
+  "
+  style={{
+    borderWidth: "0.5px",
+    borderColor: t.borderMd,
+    borderRadius: t.radiusMd,
+    background:
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+        ? t.bgSecondary
+        : "transparent",
+    color:
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+        ? t.text
+        : t.textMuted,
+  }}
             onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = t.bgSecondary;
                 (e.currentTarget as HTMLButtonElement).style.color = t.text;

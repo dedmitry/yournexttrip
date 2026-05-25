@@ -45,7 +45,7 @@ export default function NotesTab({
                 const isOpen = openId === note.id;
                 return (
                     <div key={note.id} style={{
-                    background: t.bg, border: `0.5px solid ${isOpen ? t.borderHeavy : t.border}`,
+                    background: t.bg, border: `1px solid ${isOpen ? t.borderHeavy : t.border}`,
                     borderRadius: t.radiusMd, overflow: "hidden", transition: "border-color .15s",
                     }}>
                     {/* Header row */}
@@ -77,7 +77,7 @@ export default function NotesTab({
         
                     {/* Body */}
                     {isOpen && (
-                        <div style={{ borderTop: `0.5px solid ${t.border}`, padding: "12px 14px" }}>
+                        <div style={{ borderTop: `1px solid ${t.border}`, padding: "12px 14px" }}>
                         <input
                             value={note.title}
                             onChange={(e) => updateNote(note.id, { title: e.target.value })}
@@ -109,13 +109,31 @@ export default function NotesTab({
         
             <button
                 onClick={addNote}
-                style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                width: "100%", marginTop: 12, padding: "9px 12px",
-                background: "transparent", border: `0.5px dashed ${t.borderMd}`,
-                borderRadius: t.radiusMd, cursor: "pointer", fontFamily: "inherit",
-                fontSize: 13, color: t.textMuted, transition: "background .12s, color .12s",
-                }}
+  className="
+    flex items-center justify-center gap-[7px]
+    w-full mt-2
+    px-3 py-[9px]
+    border border-dashed
+    rounded-md
+    cursor-pointer
+    text-[13px]
+    transition-colors duration-100
+  "
+  style={{
+    borderWidth: "0.5px",
+    borderColor: t.borderMd,
+    borderRadius: t.radiusMd,
+    background:
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+        ? t.bgSecondary
+        : "transparent",
+    color:
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+        ? t.text
+        : t.textMuted,
+  }}
                 onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = t.bgSecondary;
                 (e.currentTarget as HTMLButtonElement).style.color = t.text;

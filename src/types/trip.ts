@@ -27,6 +27,7 @@ export type TripStop = {
     id: number;
     day: number;
     type: StopType;
+    subtype: string;
     time: string;
     name: string;
     details: string;
@@ -41,6 +42,7 @@ export const initialTripStop: TripStop = {
     id: 0,
     day: 0,
     type: "place",
+    subtype: "Activities",
     time: "",
     name: "New stop",
     details: "",

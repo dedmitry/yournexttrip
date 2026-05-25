@@ -8,7 +8,7 @@ import { TripStop, initialTripStop, TripMeta, StopId, StopType } from "@/types/t
 import { formatBudget } from "@/utils/tripSummary";
 
 import { t, inputStyle, saveBtnStyle, cancelBtnStyle } from "@/lib/styles";
-import { STOP_TYPE_CONFIG } from "@/lib/config";
+import { STOP_TYPE_CONFIG, TRANSPORT_SUBTYPES, STAY_SUBTYPES, FOOD_SUBTYPES, PLACE_SUBTYPES } from "@/lib/config";
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -25,6 +25,16 @@ function getDayLabel(day: number, dateFrom: string | Date) {
   } catch {
     return `Day ${day}`;
   }
+}
+
+
+ 
+function getSubtypes(type: StopType) {
+  if (type === "transit") return TRANSPORT_SUBTYPES;
+  if (type === "stay") return STAY_SUBTYPES;
+  if (type === "place") return PLACE_SUBTYPES;
+  if (type === "food") return FOOD_SUBTYPES;
+  return null;
 }
 
 
@@ -103,7 +113,7 @@ function StopCard({
                     border: `1.5px solid ${cfg.dotColor}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 13, flexShrink: 0, zIndex: 1,
-                }}>{cfg.icon}</div>
+                }}><StopTypeIcon label={stop.subtype} size={16} /></div>
                 {!isLast && <div style={{ width: 1, background: t.border, flex: 1, minHeight: 8 }} />}
             </div>
 
@@ -130,7 +140,7 @@ function StopCard({
                             display: "inline-flex", alignItems: "center",
                             borderRadius: 20, padding: "2px 9px", fontSize: 11, fontWeight: 500,
                             background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap", marginBottom: 4,
-                        }}>{cfg.label}</span>
+                        }}>{stop.subtype}</span>
                         <div style={{ fontSize: 14, fontWeight: 500, color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stop.name}</div>
                         <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.details}</div>
                     </div>
@@ -206,6 +216,44 @@ function StopCard({
                                 />
                             </FormField>
                         </div>
+
+{getSubtypes(stop.type) && (
+                <FormField label="Subtype" style={{ marginBottom: 9 }}>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center",
+                    /*background: t.bgSecondary,*/ border: `0.5px solid ${t.border}`,
+                    borderRadius: 10, padding: 3, gap: 1, width: "100%", boxSizing: "border-box",
+                  }}>
+                    {getSubtypes(stop.type)!.map((sub) => {
+                      const activeVal = stop.subtype ?? getSubtypes(stop.type)![0].value;
+                      const isActive = activeVal === sub.value;
+                      //const hasIcon = "icon" in sub;
+                      return (
+                        <button
+                          key={sub.value}
+                          onClick={(e) => { e.stopPropagation(); onSave({ ...stop, subtype: sub.value }); }}
+                          style={{
+                            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
+                            fontSize: 12, padding: "5px 8px", borderRadius: 7,
+                            border: isActive ? `0.5px solid ${t.borderHeavy}` : "0.5px solid transparent",
+                            background: isActive ? t.text : "transparent",
+                            color: isActive ? t.bg : t.textMuted,
+                            fontWeight: 500,
+                            boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                            cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+                            transition: "background .12s, color .12s, border-color .12s, box-shadow .12s",
+                          }}
+                        >
+                          
+                          {sub.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </FormField>
+              )}
+
+
                         <FormField label="Name" style={{ marginBottom: 9 }}>
                             <input value={stop.name} onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
                         </FormField>
@@ -398,8 +446,8 @@ function AddBar({
                             cursor: "pointer", padding: compact ? "3px 9px" : "4px 11px", 
                         }}
                     >
-                        <StopTypeIcon label={cfg.label} />
-                         {cfg.label}</button> 
+                    <StopTypeIcon label={cfg.label} />
+                     {cfg.label}</button> 
                 );
                 })}
             </div>
@@ -442,12 +490,20 @@ export default function TripPlanner({
 		const day = targetDay ?? (stops.length > 0 ? stops[stops.length - 1].day : 1);
 		setNextId((n) => n + 1);
 
+        const subtype = type === "transit" 
+            ? "Plane" 
+            : type === "stay" 
+                ? "Hotel" 
+                : type === "food" 
+                    ? "Restaurant" : "Activities"
+
 		const cfg = STOP_TYPE_CONFIG[type];
 		const newStop: TripStop = {
             ...initialTripStop, 
             id: nextId, 
             day, 
             type,
+            subtype,
             name: `New ${cfg.label.toLowerCase()}`, 
         };
 
@@ -542,14 +598,31 @@ export default function TripPlanner({
 			{/* Add day */}
 			<button
 				onClick={addDay}
-				style={{
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                    width: "100%", marginTop: 8, padding: "9px 12px",
-                    background: "transparent", border: `0.5px dashed ${t.borderMd}`,
-                    borderRadius: t.radiusMd, cursor: "pointer", fontFamily: "inherit",
-                    fontSize: 13, color: t.textMuted,
-                    transition: "background .12s, color .12s",
-				}}
+  className="
+    flex items-center justify-center gap-[7px]
+    w-full mt-2
+    px-3 py-[9px]
+    border border-dashed
+    rounded-md
+    cursor-pointer
+    text-[13px]
+    transition-colors duration-100
+  "
+  style={{
+    borderWidth: "0.5px",
+    borderColor: t.borderMd,
+    borderRadius: t.radiusMd,
+    background:
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+        ? t.bgSecondary
+        : "transparent",
+    color:
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+        ? t.text
+        : t.textMuted,
+  }}
 				onMouseEnter={(e) => {
                     (e.currentTarget).style.background = t.bgSecondary;
                     (e.currentTarget).style.color = t.text;

@@ -101,7 +101,13 @@ export default function TripHeaderCard({
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-
+                    {/* Title */}
+                    <div style={{
+                    fontSize: 22, fontWeight: 500, color: t.text,
+                    letterSpacing: "-0.3px", lineHeight: 1.25,
+                    marginBottom: 10,
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>{trip.meta.title}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         <Chip>📅 {tripTripRange(trip.meta.dateFrom, trip.meta.dateTo)}</Chip>
                         <Chip>⏱ {tripDays} days</Chip>
