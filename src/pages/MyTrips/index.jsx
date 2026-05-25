@@ -6,6 +6,7 @@ import Footer from "@components/PageFooter";
 import FilterBar from "@components/FilterBar";
 import EmptyState from "@components/EmptyState";
 import NewTripModal from "@components/ModalNewTrip";
+import StopTypeIcon from "@components/StopTypeIcon";
 
 import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops } from "@/utils/tripSummary";
 import { saveTrip, getAllTrips, deleteTrip as deleteTripDB } from "@utils/storage";
@@ -185,8 +186,8 @@ function Item({ trip, onDelete, onDuplicate, onRate }) {
                     padding: "0 4px",
                 }}>
                     <div style={{ fontSize: 17, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
-                    <div style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }}>
-                    {cfg.icon} {cfg.label}
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, fontSize: 10, color: t.textMuted, marginTop: 2 }}>
+                    <StopTypeIcon label={cfg.label} /> {cfg.label}
                     </div>
                 </div>
                 );

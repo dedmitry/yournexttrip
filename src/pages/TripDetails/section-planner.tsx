@@ -18,7 +18,7 @@ function getDayLabel(day: number, dateFrom: string | Date) {
     const start = new Date(dateFrom);
     if (isNaN(start.getTime())) throw new Error();
     const d = new Date(start);
-    d.setDate(start.getDate() + (day - 1));
+    d.setDate(start.getDate() + (day));
     const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
     const month   = d.toLocaleDateString("en-US", { month: "short" });
     return `Day ${day} · ${weekday} ${month} ${d.getDate()}`;
@@ -543,7 +543,15 @@ export default function TripPlanner({
         ? Math.max(...stops.map((s) => s.day)) 
         : 1;
 	const days = Array.from({ length: maxDay }, (_, i) => i + 1);
-	const currentDay = 3;
+  const currentDay = (() => {
+    if (!meta.dateFrom) return -1;
+    const start = new Date(meta.dateFrom);
+    start.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.round((today.getTime() - start.getTime()) / 86_400_000) + 1;
+    return diff >= 1 && diff <= maxDay ? diff : -1;
+  })();
 
 
 	const addDay = () => {

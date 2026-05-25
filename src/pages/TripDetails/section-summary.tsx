@@ -131,7 +131,7 @@ export default function TripHeaderCard({
                     <div key={type} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 18, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
                         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, fontSize: 11, color: t.textMuted, marginTop: 2 }}>
-                            <StopTypeIcon label={cfg.label} />
+                            <StopTypeIcon label={cfg.label} /> 
                             {cfg.label}
                         </div>
                     </div>
