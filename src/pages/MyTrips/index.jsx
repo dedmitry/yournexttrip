@@ -177,14 +177,14 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
             {/* Stop-type stats — mirrors TripHeaderCard */}
             <div style={{
             display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-            borderTop: `0.5px solid ${t.border}`, paddingTop: 12, gap: 0,
+            borderTop: `1px solid ${t.borderWhite}`, paddingTop: 12, gap: 0,
             }}>
             {Object.keys(STOP_TYPE_CONFIG).map((type, i, arr) => {
                 const cfg = STOP_TYPE_CONFIG[type];
                 return (
                 <div key={type} style={{
                     textAlign: "center",
-                    borderRight: i < arr.length - 1 ? `0.5px solid ${t.border}` : "none",
+                    borderRight: i < arr.length - 1 ? `1px solid ${t.borderWhite}` : "none",
                     padding: "0 4px",
                 }}>
                     <div style={{ fontSize: 17, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
@@ -359,8 +359,8 @@ export default function MyTrips() {
 
             {showModal && (
                 <NewTripModal 
+                    onSave={createTrip} 
                     onClose={() => setShowModal(false)} 
-                    onCreate={createTrip} 
                 />
             )}
         </div>

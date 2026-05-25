@@ -134,12 +134,15 @@ export default function TripHeaderCard({
             {/* Summary */}
             <div style={{
                 display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8,
-                borderTop: `1px solid ${t.borderMd}`, paddingTop: 14,
+                borderTop: `1px solid ${t.borderWhite}`, paddingTop: 14,
             }}>
-                {(Object.keys(STOP_TYPE_CONFIG) as StopType[]).map((type) => {
+                {(Object.keys(STOP_TYPE_CONFIG) as StopType[]).map((type, i, arr) => {
                     const cfg = STOP_TYPE_CONFIG[type];
                     return (
-                    <div key={type} style={{ textAlign: "center" }}>
+                    <div key={type} style={{                     
+                        textAlign: "center",
+                    borderRight: i < arr.length - 1 ? `1px solid ${t.borderWhite}` : "none",
+                    padding: "0 4px", }}>
                         <div style={{ fontSize: 18, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
                         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, fontSize: 11, color: t.textMuted, marginTop: 2 }}>
                             <StopTypeIcon label={cfg.label} /> 

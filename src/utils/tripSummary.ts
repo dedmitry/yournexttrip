@@ -179,3 +179,20 @@ export function countTripStops(stops: TripStop[]): StopCounts {
 
     return counts;
 }
+
+
+
+
+export function getDayLabel(day: number, dateFrom: string | Date) {
+    try {
+        const start = new Date(dateFrom);
+        if (isNaN(start.getTime())) throw new Error();
+        const d = new Date(start);
+        d.setDate(start.getDate() + (day));
+        const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+        const month   = d.toLocaleDateString("en-US", { month: "short" });
+        return `Day ${day} · ${weekday} ${month} ${d.getDate()}`;
+    } catch {
+        return `Day ${day}`;
+    }
+}

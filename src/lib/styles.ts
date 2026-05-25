@@ -11,6 +11,7 @@
      border:      "var(--color-border-tertiary,       #e5e5e3)",
      borderMd:    "var(--color-border-secondary,      #ccccca)",
      borderHeavy: "var(--color-border-primary,        #999997)",
+     borderWhite: "var(--color-border-white,          #ffffff)",
 
      accentGrad:  "linear-gradient(135deg, #FF3838 0%, #FFB347 100%)",
      

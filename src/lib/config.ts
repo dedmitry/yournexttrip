@@ -1,3 +1,4 @@
+import { StopType } from "@/types/trip";
 
 export const t = {
     bg:          "var(--color-background-primary,   #ffffff)",
@@ -41,27 +42,37 @@ export const STOP_TYPE_CONFIG = {
     //other: { icon: "⊕", label: "Other", bg: "#F1EFE8", color: "#5F5E5A", dotColor: "#C9C7C4", badgeBg: "#F1EFE8", badgeText: "#5F5E5A", iconBg: "#F1EFE8", iconColor: "#5F5E5A" },
 };
 
+
+
 export const TRANSPORT_SUBTYPES = [
-  { value: "Plane", label: "Plane" },
-  { value: "Train", label: "Train" },
-  { value: "Bus",   label: "Bus" },
-  { value: "Ship",  label: "Ship" },
+    { value: "Plane", label: "Plane" },
+    { value: "Train", label: "Train" },
+    { value: "Bus",   label: "Bus" },
+    { value: "Ship",  label: "Ship" },
 ];
  
 export const FOOD_SUBTYPES = [
-  { value: "Restaurant", label: "Restaurant" },
-  { value: "Street Food", label: "Street Food" },
-  { value: "Market", label: "Market" },
+    { value: "Restaurant", label: "Restaurant" },
+    { value: "Street Food", label: "Street Food" },
+    { value: "Market", label: "Market" },
 ];
  
 export const PLACE_SUBTYPES = [
-  { value: "Activities", label: "Activities" },
-  { value: "Attractions",  label: "Attractions"  },
-  { value: "Hiking", label: "Hiking"   },
+    { value: "Activities", label: "Activities" },
+    { value: "Attractions",  label: "Attractions"  },
+    { value: "Hiking", label: "Hiking"   },
 ];
  
 export const STAY_SUBTYPES = [
-  { value: "Hotel",  label: "Hotel" },
-  { value: "Apartment", label: "Apartment" },
-  { value: "Other", label: "Other" },
+    { value: "Hotel",  label: "Hotel" },
+    { value: "Apartment", label: "Apartment" },
+    { value: "Other", label: "Other" },
 ];
+
+export function getSubtypes(type: StopType) {
+    if (type === "transit") return TRANSPORT_SUBTYPES;
+    if (type === "stay") return STAY_SUBTYPES;
+    if (type === "place") return PLACE_SUBTYPES;
+    if (type === "food") return FOOD_SUBTYPES;
+    return null;
+}

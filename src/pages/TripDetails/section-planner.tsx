@@ -5,37 +5,10 @@ import StopTypeIcon from "@components/StopTypeIcon";
 
 import { TripStop, initialTripStop, TripMeta, StopId, StopType } from "@/types/trip";
 
-import { formatBudget } from "@/utils/tripSummary";
+import { formatBudget, getDayLabel } from "@/utils/tripSummary";
 
 import { t, inputStyle, saveBtnStyle, cancelBtnStyle } from "@/lib/styles";
-import { STOP_TYPE_CONFIG, TRANSPORT_SUBTYPES, STAY_SUBTYPES, FOOD_SUBTYPES, PLACE_SUBTYPES } from "@/lib/config";
-
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getDayLabel(day: number, dateFrom: string | Date) {
-  try {
-    const start = new Date(dateFrom);
-    if (isNaN(start.getTime())) throw new Error();
-    const d = new Date(start);
-    d.setDate(start.getDate() + (day));
-    const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
-    const month   = d.toLocaleDateString("en-US", { month: "short" });
-    return `Day ${day} · ${weekday} ${month} ${d.getDate()}`;
-  } catch {
-    return `Day ${day}`;
-  }
-}
-
-
- 
-function getSubtypes(type: StopType) {
-  if (type === "transit") return TRANSPORT_SUBTYPES;
-  if (type === "stay") return STAY_SUBTYPES;
-  if (type === "place") return PLACE_SUBTYPES;
-  if (type === "food") return FOOD_SUBTYPES;
-  return null;
-}
+import { STOP_TYPE_CONFIG, getSubtypes } from "@/lib/config";
 
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -198,6 +171,12 @@ function StopCard({
                                     onChange={(e) => onSave({
                                         ...stop,
                                         type: e.target.value as StopType,
+                                        subtype: e.target.value === "transit" 
+                                            ? "Plane" 
+                                            : e.target.value === "stay" 
+                                                ? "Hotel" 
+                                                : e.target.value === "food" 
+                                                    ? "Restaurant" : "Activities",
                                     })} 
                                     style={{...inputStyle, height: "33.5px"}}
                                 >
@@ -217,45 +196,44 @@ function StopCard({
                             </FormField>
                         </div>
 
-{getSubtypes(stop.type) && (
-                <FormField label="Subtype" style={{ marginBottom: 9 }}>
-                  <div style={{
-                    display: "inline-flex", alignItems: "center",
-                    /*background: t.bgSecondary,*/ border: `0.5px solid ${t.border}`,
-                    borderRadius: 10, padding: 3, gap: 1, width: "100%", boxSizing: "border-box",
-                  }}>
-                    {getSubtypes(stop.type)!.map((sub) => {
-                      const activeVal = stop.subtype ?? getSubtypes(stop.type)![0].value;
-                      const isActive = activeVal === sub.value;
-                      //const hasIcon = "icon" in sub;
-                      return (
-                        <button
-                          key={sub.value}
-                          onClick={(e) => { e.stopPropagation(); onSave({ ...stop, subtype: sub.value }); }}
-                          style={{
-                            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
-                            fontSize: 12, padding: "5px 8px", borderRadius: 7,
-                            border: isActive ? `0.5px solid ${t.borderHeavy}` : "0.5px solid transparent",
-                            background: isActive ? t.text : "transparent",
-                            color: isActive ? t.bg : t.textMuted,
-                            fontWeight: 500,
-                            boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
-                            cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-                            transition: "background .12s, color .12s, border-color .12s, box-shadow .12s",
-                          }}
-                        >
-                          
-                          {sub.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormField>
-              )}
-
+                        {getSubtypes(stop.type) && (
+                            <FormField label="Subtype" style={{ marginBottom: 9 }}>
+                            <div style={{
+                                display: "inline-flex", alignItems: "center",
+                                /*background: t.bgSecondary,*/ border: `0.5px solid ${t.border}`,
+                                borderRadius: 10, padding: 3, gap: 1, width: "100%", boxSizing: "border-box",
+                            }}>
+                                {getSubtypes(stop.type)!.map((sub) => {
+                                const activeVal = stop.subtype ?? getSubtypes(stop.type)![0].value;
+                                const isActive = activeVal === sub.value;
+                                //const hasIcon = "icon" in sub;
+                                return (
+                                    <button
+                                        key={sub.value}
+                                        onClick={(e) => { e.stopPropagation(); onSave({ ...stop, subtype: sub.value }); }}
+                                        style={{
+                                            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
+                                            fontSize: 12, padding: "5px 8px", borderRadius: 7,
+                                            border: isActive ? `0.5px solid ${t.borderHeavy}` : "0.5px solid transparent",
+                                            background: isActive ? t.text : "transparent",
+                                            color: isActive ? t.bg : t.textMuted,
+                                            fontWeight: 500,
+                                            boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                                            cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+                                            transition: "background .12s, color .12s, border-color .12s, box-shadow .12s",
+                                        }}
+                                    >
+                                    
+                                    {sub.label}
+                                    </button>
+                                );
+                                })}
+                            </div>
+                            </FormField>
+                        )}
 
                         <FormField label="Name" style={{ marginBottom: 9 }}>
-                            <input value={stop.name} onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
+                            <input value={stop.name +' - '+ stop.id } onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
                         </FormField>
                         <FormField label="Address / details" style={{ marginBottom: 9 }}>
                             <input value={stop.details} onChange={(e) => onSave({ ...stop, details: e.target.value })} style={inputStyle} />
@@ -328,43 +306,43 @@ function TransitRow({
     stop: TripStop;
     onSave: (value: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(stop.travelNext);
-  const save = () => { onSave(value); setEditing(false); };
+    const [editing, setEditing] = useState(false);
+    const [value, setValue] = useState(stop.travelNext);
+    const save = () => { onSave(value); setEditing(false); };
 
-  return (
-    <div style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
-      <div style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ width: 1, background: t.border, flex: 1 }} />
-        <div style={{ width: 5, height: 5, borderRadius: "50%", background: t.borderMd, flexShrink: 0 }} />
-        <div style={{ width: 1, background: t.border, flex: 1 }} />
-      </div>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "4px 0" }}>
-        {editing ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <input autoFocus value={value} onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && save()}
-              placeholder="e.g. 20 min · metro"
-              style={{ ...inputStyle, width: 160, padding: "3px 8px", fontSize: 12 }} />
-            <button onClick={save} style={{ ...saveBtnStyle, padding: "3px 10px", fontSize: 12 }}>Save</button>
-            <button onClick={() => setEditing(false)} style={{ ...cancelBtnStyle, padding: "3px 10px", fontSize: 12 }}>Cancel</button>
-          </div>
-        ) : (
-          <button onClick={() => { setValue(stop.travelNext); setEditing(true); }} style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
-            fontSize: 11, color: t.textMuted, background: t.bgSecondary,
-            border: `0.5px solid ${t.border}`, borderRadius: 20,
-            padding: "3px 10px", cursor: "pointer", fontFamily: "inherit",
-          }}>
-            {stop.travelNext
-              ? <><span>→</span>{stop.travelNext}<span style={{ fontSize: 10, opacity: 0.5 }}>✏</span></>
-              : <><span>+</span>Add travel time</>}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
+    return (
+        <div style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
+            <div style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ width: 1, background: t.border, flex: 1 }} />
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: t.borderMd, flexShrink: 0 }} />
+                <div style={{ width: 1, background: t.border, flex: 1 }} />
+            </div>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "4px 0" }}>
+                {editing ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <input autoFocus value={value} onChange={(e) => setValue(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && save()}
+                    placeholder="e.g. 20 min · metro"
+                    style={{ ...inputStyle, width: 160, padding: "3px 8px", fontSize: 12 }} />
+                    <button onClick={save} style={{ ...saveBtnStyle, padding: "3px 10px", fontSize: 12 }}>Save</button>
+                    <button onClick={() => setEditing(false)} style={{ ...cancelBtnStyle, padding: "3px 10px", fontSize: 12 }}>Cancel</button>
+                </div>
+                ) : (
+                <button onClick={() => { setValue(stop.travelNext); setEditing(true); }} style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    fontSize: 11, color: t.textMuted, background: t.bgSecondary,
+                    border: `0.5px solid ${t.border}`, borderRadius: 20,
+                    padding: "3px 10px", cursor: "pointer", fontFamily: "inherit",
+                }}>
+                    {stop.travelNext
+                    ? <><span>→</span>{stop.travelNext}<span style={{ fontSize: 10, opacity: 0.5 }}>✏</span></>
+                    : <><span>+</span>Add travel time</>}
+                </button>
+                )}
+            </div>
+        </div>
+    );
+    }
 
 // ════════════════════════════════════════════════════════════════════════════
 //  DAY DIVIDER
@@ -486,9 +464,16 @@ export default function TripPlanner({
 	};
 
 
-	const addStop = (type: keyof typeof STOP_TYPE_CONFIG, targetDay?: number) => {
-		const day = targetDay ?? (stops.length > 0 ? stops[stops.length - 1].day : 1);
-		setNextId((n) => n + 1);
+	const addStop = (
+        type: keyof typeof STOP_TYPE_CONFIG, 
+        targetDay?: number
+    ) => {
+        const day =
+            targetDay ??
+            (stops.length > 0 ? stops[stops.length - 1].day : 1);
+
+        const id = nextId;
+        setNextId(id + 1);
 
         const subtype = type === "transit" 
             ? "Plane" 
@@ -500,7 +485,7 @@ export default function TripPlanner({
 		const cfg = STOP_TYPE_CONFIG[type];
 		const newStop: TripStop = {
             ...initialTripStop, 
-            id: nextId, 
+            id, 
             day, 
             type,
             subtype,
@@ -543,25 +528,27 @@ export default function TripPlanner({
         ? Math.max(...stops.map((s) => s.day)) 
         : 1;
 	const days = Array.from({ length: maxDay }, (_, i) => i + 1);
-  const currentDay = (() => {
-    if (!meta.dateFrom) return -1;
-    const start = new Date(meta.dateFrom);
-    start.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diff = Math.round((today.getTime() - start.getTime()) / 86_400_000) + 1;
-    return diff >= 1 && diff <= maxDay ? diff : -1;
-  })();
+    const currentDay = (() => {
+        if (!meta.dateFrom) return -1;
+        const start = new Date(meta.dateFrom);
+        start.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diff = Math.round((today.getTime() - start.getTime()) / 86_400_000);
+        return diff >= 1 && diff <= maxDay ? diff : -1;
+    })();
 
 
 	const addDay = () => {
-		const newDay = maxDay + 1;
-		setNextId((n) => n + 1);
-		
+        const newDay = maxDay + 1;
+
+        const id = nextId;
+        setNextId(id + 1);
+
         const newStop: TripStop = {
             ...initialTripStop,
-            id: nextId, 
-            day: newDay, 
+            id,
+            day: newDay,
         };
 
         updateStops([...stops, newStop]);
@@ -606,31 +593,31 @@ export default function TripPlanner({
 			{/* Add day */}
 			<button
 				onClick={addDay}
-  className="
-    flex items-center justify-center gap-[7px]
-    w-full mt-2
-    px-3 py-[9px]
-    border border-dashed
-    rounded-md
-    cursor-pointer
-    text-[13px]
-    transition-colors duration-100
-  "
-  style={{
-    borderWidth: "0.5px",
-    borderColor: t.borderMd,
-    borderRadius: t.radiusMd,
-    background:
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 639px)").matches
-        ? t.bgSecondary
-        : "transparent",
-    color:
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 639px)").matches
-        ? t.text
-        : t.textMuted,
-  }}
+                className="
+                    flex items-center justify-center gap-[7px]
+                    w-full mt-2
+                    px-3 py-[9px]
+                    border border-dashed
+                    rounded-md
+                    cursor-pointer
+                    text-[13px]
+                    transition-colors duration-100
+                "
+                style={{
+                    borderWidth: "0.5px",
+                    borderColor: t.borderMd,
+                    borderRadius: t.radiusMd,
+                    background:
+                    typeof window !== "undefined" &&
+                    window.matchMedia("(max-width: 639px)").matches
+                        ? t.bgSecondary
+                        : "transparent",
+                    color:
+                    typeof window !== "undefined" &&
+                    window.matchMedia("(max-width: 639px)").matches
+                        ? t.text
+                        : t.textMuted,
+                }}
 				onMouseEnter={(e) => {
                     (e.currentTarget).style.background = t.bgSecondary;
                     (e.currentTarget).style.color = t.text;
