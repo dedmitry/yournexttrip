@@ -93,6 +93,50 @@ export async function getAllTrips(): Promise<Trip[]> {
     });
 }
 
+export async function editTrip(
+    id: number,
+    updates: Partial<Trip>
+): Promise<void> {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const store = tx.objectStore(STORE);
+
+        const req = store.get(id);
+
+        req.onsuccess = () => {
+            const existing = req.result as Trip | undefined;
+
+            if (!existing) {
+                reject(new Error(`Trip with id ${id} not found`));
+                return;
+            }
+
+            const updatedTrip: Trip = {
+                ...existing,
+                ...updates,
+                meta: {
+                    ...existing.meta,
+                    ...(updates.meta ?? {}),
+                },
+            };
+
+            store.put(updatedTrip);
+        };
+
+        req.onerror = () => {
+            reject(req.error);
+        };
+
+        tx.oncomplete = () => resolve();
+
+        tx.onerror = () => {
+            reject(tx.error);
+        };
+    });
+}
+
 export async function deleteTrip(id: number): Promise<void> {
     const db = await openDB();
 

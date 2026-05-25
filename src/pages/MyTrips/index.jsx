@@ -8,6 +8,7 @@ import EmptyState from "@components/EmptyState";
 import NewTripModal from "@components/ModalNewTrip";
 import StopTypeIcon from "@components/StopTypeIcon";
 
+import { createTripShareUrl } from "@/utils/tripShare";
 import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops } from "@/utils/tripSummary";
 import { saveTrip, getAllTrips, deleteTrip as deleteTripDB } from "@utils/storage";
 
@@ -59,7 +60,7 @@ function StarRating({ rating, onRate, interactive }) {
 
 // ─── Item ─────────────────────────────────────────────────────────────
 
-function Item({ trip, onDelete, onDuplicate, onRate }) {
+function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const status = STATUS_CONFIG[trip.meta.status];
 
@@ -100,55 +101,56 @@ function Item({ trip, onDelete, onDuplicate, onRate }) {
                 {/* Context menu */}
                 <div style={{ position: "relative", flexShrink: 0 }}>
                     <button
-                    onClick={() => setMenuOpen((o) => !o)}
-                    style={{
-                        width: 26, height: 26, borderRadius: 6, cursor: "pointer",
-                        border: `0.5px solid ${t.border}`, background: t.bg,
-                        color: t.textHint, fontFamily: "inherit", fontSize: 14,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}
-                    >···</button>
-                    {menuOpen && (
-                    <div
+                        onClick={() => setMenuOpen((o) => !o)}
                         style={{
-                        position: "absolute", top: 30, right: 0, zIndex: 20,
-                        background: t.bg, border: `0.5px solid ${t.border}`,
-                        borderRadius: t.radiusMd, padding: "4px 0", minWidth: 148,
-                        boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+                            width: 26, height: 26, borderRadius: 6, cursor: "pointer",
+                            border: `0.5px solid ${t.border}`, background: t.bg,
+                            color: t.textHint, fontFamily: "inherit", fontSize: 14,
+                            display: "flex", alignItems: "center", justifyContent: "center",
                         }}
-                        onMouseLeave={() => setMenuOpen(false)}
-                    >
-                        {[
-                        { label: "Open trip",  icon: "↗", action: () => setMenuOpen(false) },
-                        { label: "Duplicate",  icon: "⧉", action: () => { onDuplicate(trip.id); setMenuOpen(false); } },
-                        { label: "Export PDF", icon: "⬇", action: () => setMenuOpen(false) },
-                        { label: "Share",      icon: "⤴", action: () => setMenuOpen(false) },
-                        null,
-                        { label: "Delete", icon: "×", action: () => { onDelete(trip.id); setMenuOpen(false); }, danger: true },
-                        ].map((item, i) =>
-                        item === null ? (
-                            <div key={i} style={{ height: 0.5, background: t.border, margin: "4px 0" }} />
-                        ) : (
-                            <button
-                            key={item.label}
-                            onClick={item.action}
+                    >···</button>
+
+                    {menuOpen && (
+                        <div
+                            onMouseLeave={() => setMenuOpen(false)}
                             style={{
-                                display: "flex", alignItems: "center", gap: 8,
-                                width: "100%", padding: "7px 14px",
-                                background: "transparent", border: "none", cursor: "pointer",
-                                fontSize: 13, fontFamily: "inherit",
-                                color: item?.danger ? "#A32D2D" : t.text,
-                                textAlign: "left",
+                                position: "absolute", top: 30, right: 0, zIndex: 20,
+                                background: t.bg, border: `0.5px solid ${t.border}`,
+                                borderRadius: t.radiusMd, padding: "4px 0", minWidth: 148,
+                                boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = item?.danger ? "#FCEBEB" : t.bgSecondary)}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                            >
-                            <span style={{ width: 14, textAlign: "center", flexShrink: 0 }}>{item.icon}</span>
-                            {item.label}
-                            </button>
-                        )
-                        )}
-                    </div>
+                        >
+                            {[
+                                { label: "Open trip",  icon: "↗", action: () => setMenuOpen(false) },
+                                { label: "Duplicate",  icon: "⧉", action: () => { onDuplicate(trip.id); setMenuOpen(false); } },
+                                { label: "Export PDF", icon: "⬇", action: () => setMenuOpen(false) },
+                                { label: "Share",      icon: "⤴", action: () => { onShareTrip(trip); setMenuOpen(false); } },
+                                null,
+                                { label: "Delete", icon: "×", action: () => { onDelete(trip.id); setMenuOpen(false); }, danger: true },
+                            ].map((item, i) =>
+                            item === null ? (
+                                <div key={i} style={{ height: 0.5, background: t.border, margin: "4px 0" }} />
+                            ) : (
+                                <button
+                                key={item.label}
+                                onClick={item.action}
+                                style={{
+                                    display: "flex", alignItems: "center", gap: 8,
+                                    width: "100%", padding: "7px 14px",
+                                    background: "transparent", border: "none", cursor: "pointer",
+                                    fontSize: 13, fontFamily: "inherit",
+                                    color: item?.danger ? "#A32D2D" : t.text,
+                                    textAlign: "left",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = item?.danger ? "#FCEBEB" : t.bgSecondary)}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                >
+                                <span style={{ width: 14, textAlign: "center", flexShrink: 0 }}>{item.icon}</span>
+                                {item.label}
+                                </button>
+                            )
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
@@ -243,7 +245,6 @@ export default function MyTrips() {
 
 
     const createTrip = async (trip) => {
-        console.log(trip)
         await saveTrip(trip);
         setTrips((prev) => [trip, ...prev])
     };
@@ -251,9 +252,14 @@ export default function MyTrips() {
     const duplicateTrip = async (id) => {
         const src = trips.find((t) => t.id === id);
         if (!src) return;
-        const copy = { ...src, id: Date.now(), title: src.title + " (copy)", status: "planning" };
+        const copy = { ...src, id: Date.now(), meta: { ...src.meta, title: src.meta.title + " (copy)" }, status: "planning" };
         await saveTrip(copy);
         setTrips((prev) => [...prev, copy]);
+    };
+
+    const shareTrip = async (trip) => {
+        const url = createTripShareUrl(trip);
+        navigator.clipboard.writeText(url);
     };
 
     const deleteTrip = async (id) => {
@@ -339,6 +345,7 @@ export default function MyTrips() {
                             trip={trip}
                             onDelete={deleteTrip}
                             onDuplicate={duplicateTrip}
+                            onShareTrip={shareTrip}
                             onRate={rateTrip}
                         />
                         ))}
