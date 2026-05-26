@@ -1,16 +1,18 @@
 import React from "react";
 
-import { t, SORT_OPTIONS, FILTER_OPTIONS } from "../../lib/config";
+import type { TripFilter, TripSort } from "@/types/trip";
+
+import { t, SORT_OPTIONS, FILTER_OPTIONS } from "@/lib/config";
 
 
 interface FilterBarProps {
     countTrips: number;
         
-    activeFilter: string;
-    onFilter: React.Dispatch<React.SetStateAction<string>>;
+    activeFilter: TripFilter;
+    onFilter: React.Dispatch<React.SetStateAction<TripFilter>>;
 
-    activeSort: string;
-    onSort: React.Dispatch<React.SetStateAction<string>>;
+    activeSort: TripSort;
+    onSort: React.Dispatch<React.SetStateAction<TripSort>>;
 
     search: string;
     onSearch: React.Dispatch<React.SetStateAction<string>>;
@@ -57,18 +59,18 @@ export default function FilterBar({
                 {/* Status filters — full width */}
                 <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap", width: "100%" }}>
                 <span style={{ fontSize: 12, color: t.textHint, marginRight: 2, flexShrink: 0 }}>Filter by</span>
-                {FILTER_OPTIONS.map(({ key, label }) => (
+                {FILTER_OPTIONS.map((s) => (
                     <button
-                    key={key}
-                    onClick={() => onFilter(key)}
+                    key={s}
+                    onClick={() => onFilter(s)}
                     style={{
                         fontSize: 12, padding: "5px 13px", borderRadius: 20, cursor: "pointer",
                         fontFamily: "inherit",
-                        border: activeFilter === key ? `0.5px solid ${t.borderHeavy}` : `0.5px solid ${t.border}`,
-                        background: activeFilter === key ? t.text : t.bg,
-                        color: activeFilter === key ? t.bg : t.textMuted,
+                        border: activeFilter === s ? `0.5px solid ${t.borderHeavy}` : `0.5px solid ${t.border}`,
+                        background: activeFilter === s ? t.text : t.bg,
+                        color: activeFilter === s ? t.bg : t.textMuted,
                     }}
-                    >{label}</button>
+                    >{s}</button>
                 ))}
                 </div>
 

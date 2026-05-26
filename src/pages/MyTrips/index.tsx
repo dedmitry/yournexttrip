@@ -1,81 +1,71 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-import Header from "@components/PageHeader";
-import Footer from "@components/PageFooter";
-import FilterBar from "@components/FilterBar";
-import EmptyState from "@components/EmptyState";
-import NewTripModal from "@components/ModalNewTrip";
-import StopTypeIcon from "@components/StopTypeIcon";
+import Header from "@/components/PageHeader";
+import Footer from "@/components/PageFooter";
+import FilterBar from "@/components/FilterBar";
+import EmptyState from "@/components/EmptyState";
+import NewTripModal from "@/components/ModalNewTrip";
+import StopTypeIcon from "@/components/StopTypeIcon";
+import Rating from "@/components/Rating";
+
+import { Trip, TripSort, TripFilter } from "@/types/trip";
 
 import { createTripShareUrl } from "@/utils/tripShare";
-import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops } from "@/utils/tripSummary";
-import { saveTrip, getAllTrips, deleteTrip as deleteTripDB } from "@utils/storage";
+import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops, formatBudget } from "@/utils/tripSummary";
+import { saveTrip, getAllTrips, editTrip, deleteTrip as deleteTripDB } from "@utils/storage";
 
 import { t, chipStyle } from "@lib/styles";
 import { STATUS_CONFIG, STOP_TYPE_CONFIG } from "@lib/config";
 
 
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function sortTrips(trips, sort) {
+function sortTrips(trips: Trip[], sort: TripSort): Trip[] {
     return [...trips].sort((a, b) => {
-        if (sort === "Name")     return a.title.localeCompare(b.title);
-        if (sort === "Budget")   return parseFloat(b.budget) - parseFloat(a.budget);
-        if (sort === "Duration") return b.days - a.days;
-        return 0; // Date — keep insertion order (already sorted)
+        if (sort === "Name")     return a.meta.title.localeCompare(b.meta.title);
+        //if (sort === "Budget")   return parseFloat(b.budget) - parseFloat(a.budget);
+        //if (sort === "Duration") return b.days - a.days;
+        return 0;
     });
 }
 
- 
-// ─── StarRating ───────────────────────────────────────────────────────────────
- 
-function StarRating({ rating, onRate, interactive }) {
-  const [hovered, setHovered] = useState(null);
-  const active = hovered ?? rating ?? 0;
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <span
-          key={star}
-          onClick={() => interactive && onRate?.(star)}
-          onMouseEnter={() => interactive && setHovered(star)}
-          onMouseLeave={() => interactive && setHovered(null)}
-          style={{
-            fontSize: 13,
-            color: star <= active ? "#F5A623" : t.borderMd,
-            cursor: interactive ? "pointer" : "default",
-            transition: "color .1s",
-            lineHeight: 1,
-          }}
-        >
-          ★
-        </span>
-      ))}
-    </div>
-  );
-}
 
 // ─── Item ─────────────────────────────────────────────────────────────
 
-function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
+function Item({ 
+    trip, 
+    onDuplicate, 
+    onShareTrip,
+    onEdit,
+    onDelete,
+    onRate
+} : {
+    trip: Trip;
+    onDuplicate: (trip: Trip) => void;
+    onShareTrip: (trip: Trip) => void;
+    onEdit: (trip: Trip) => void;
+    onDelete: (id: number) => void;
+    onRate: (id: number, rating: number) => void;
+}) {1
     const [menuOpen, setMenuOpen] = useState(false);
+
+    const menuItems = [
+        { label: "Edit", action: () => onEdit(trip), icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+        { label: "Share", action: () => onShareTrip(trip), icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49"/></svg> },
+        //{ label: "Export PDF", action: () => setMenuOpen(false), icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg> },
+        { label: "Duplicate", action: () => onDuplicate(trip), icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> },
+        null,
+        { label: "Delete", action: () => onDelete(trip.id), icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M8 6V4h8v2"/></svg>, danger: true },
+    ];
+
     const status = STATUS_CONFIG[trip.meta.status];
 
     const tripDays = calculateTripDays(trip.meta.dateFrom, trip.meta.dateTo);
     const tripStats = countTripStops(trip.stops);
+    const totalBudget = totalTripBudget(trip.stops);
 
-    // Distribute stops evenly across the 4 types for display purposes
-    const perType = Math.floor(trip.meta.stops / 4);
-    const rem     = trip.meta.stops % 4;
-    const stopCounts = {
-        transport: perType + (rem > 0 ? 1 : 0),
-        hotel:     perType + (rem > 1 ? 1 : 0),
-        place:     perType + (rem > 2 ? 1 : 0),
-        food:      perType,
-    };
+    type StopType = keyof typeof STOP_TYPE_CONFIG;
 
     return (
         <div
@@ -92,10 +82,10 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
 
             {/* Top: stars + menu */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
-                <StarRating
-                    rating={trip.rating}
+                <Rating
+                    rating={trip.meta.rating ?? undefined}
                     onRate={(r) => onRate(trip.id, r)}
-                    interactive={trip.status === "completed" || trip.status === "ongoing"}
+                    interactive={trip.meta.status === "completed" || trip.meta.status === "ongoing"}
                 />
 
                 {/* Context menu */}
@@ -120,14 +110,7 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
                                 boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
                             }}
                         >
-                            {[
-                                { label: "Open trip",  icon: "↗", action: () => setMenuOpen(false) },
-                                { label: "Duplicate",  icon: "⧉", action: () => { onDuplicate(trip.id); setMenuOpen(false); } },
-                                { label: "Export PDF", icon: "⬇", action: () => setMenuOpen(false) },
-                                { label: "Share",      icon: "⤴", action: () => { onShareTrip(trip); setMenuOpen(false); } },
-                                null,
-                                { label: "Delete", icon: "×", action: () => { onDelete(trip.id); setMenuOpen(false); }, danger: true },
-                            ].map((item, i) =>
+                            {menuItems.map((item, i) =>
                             item === null ? (
                                 <div key={i} style={{ height: 0.5, background: t.border, margin: "4px 0" }} />
                             ) : (
@@ -157,10 +140,10 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
 
             {/* Title */}
             <div style={{
-            fontSize: 18, fontWeight: 500, color: t.text,
-            letterSpacing: "-0.3px", lineHeight: 1.25,
-            marginBottom: 10,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                fontSize: 18, fontWeight: 500, color: t.text,
+                letterSpacing: "-0.3px", lineHeight: 1.25,
+                marginBottom: 10,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
             }}>{trip.meta.title}</div>
 
             {/* Meta chips */}
@@ -171,7 +154,7 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
                 <span style={chipStyle}>📍 {trip.meta.destination}</span>
                 }
                 <span style={chipStyle}>👥 {trip.meta.travelers}</span>
-                <span style={chipStyle}>💰 {totalTripBudget(trip.stops)}</span>
+                <span style={chipStyle}>💰 {formatBudget(totalBudget)}</span>
             </div>
 
             {/* Stop-type stats — mirrors TripHeaderCard */}
@@ -179,7 +162,7 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
             display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
             borderTop: `1px solid ${t.borderWhite}`, paddingTop: 12, gap: 0,
             }}>
-            {Object.keys(STOP_TYPE_CONFIG).map((type, i, arr) => {
+            {(Object.keys(STOP_TYPE_CONFIG) as StopType[]).map((type, i, arr) => {
                 const cfg = STOP_TYPE_CONFIG[type];
                 return (
                 <div key={type} style={{
@@ -222,18 +205,17 @@ function Item({ trip, onDelete, onDuplicate, onShareTrip, onRate }) {
 }
 
 
-
 // ─── Page root ────────────────────────────────────────────────────────────────
 
 export default function MyTrips() {
-    const [loading, setLoading] = useState(true);
-    const [trips, setTrips]           = useState([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [trips, setTrips]           = useState<Trip[]>([]);
 
-    const [filter, setFilter]         = useState("all");
-    const [sort, setSort]             = useState("Date");
-    const [search, setSearch]         = useState("");
+    const [filter, setFilter] = useState<TripFilter>("All");
+    const [sort, setSort] = useState<TripSort>("Date");
+    const [search, setSearch] = useState<string>("");
 
-    const [showModal, setShowModal]   = useState(false);
+    const [showModal, setShowModal]   = useState<boolean>(false);
 
 
     useEffect(() => {
@@ -244,30 +226,41 @@ export default function MyTrips() {
     }, []);
 
 
-    const createTrip = async (trip) => {
+    const createTrip = async (trip: Trip) => {
         await saveTrip(trip);
         setTrips((prev) => [trip, ...prev])
     };
 
-    const duplicateTrip = async (id) => {
-        const src = trips.find((t) => t.id === id);
-        if (!src) return;
-        const copy = { ...src, id: Date.now(), meta: { ...src.meta, title: src.meta.title + " (copy)" }, status: "planning" };
+
+    const handleDuplicateTrip = async (trip: Trip) => {
+        const copy = { 
+            ...trip, 
+            id: Date.now(), 
+            meta: { 
+                ...trip.meta, 
+                title: trip.meta.title + " (copy)" 
+            }, 
+            status: "planning" 
+        }
         await saveTrip(copy);
-        setTrips((prev) => [...prev, copy]);
+        setTrips((prev) => [copy, ...prev]);
     };
 
-    const shareTrip = async (trip) => {
-        const url = createTripShareUrl(trip);
-        navigator.clipboard.writeText(url);
+    const handleShareTrip = async (trip: Trip) => {
+        navigator.clipboard.writeText(createTripShareUrl(trip));
     };
 
-    const deleteTrip = async (id) => {
+    const handleEditTrip = async (trip: Trip) => {
+        await editTrip(trip.id, trip);
+        setTrips((prev) => prev.map((t) => t.id === trip.id ? trip : t));
+    };
+
+    const deleteTrip = async (id: number) => {
         await deleteTripDB(id);
         setTrips((prev) => prev.filter((t) => t.id !== id))
     };
 
-    const rateTrip = async (id, rating) => {
+    const rateTrip = async (id: number, rating: number) => {
         const trip = trips.find((t) => t.id === id);
         if (!trip) return;
         const updated = { ...trip, meta: { ...trip.meta, rating } };
@@ -277,7 +270,7 @@ export default function MyTrips() {
 
     const filtered = sortTrips(
         trips.filter((trip) => {
-            const matchesFilter = filter === "all" || trip.meta.status === filter;
+            const matchesFilter = filter === "All" ||  trip.meta.status.charAt(0).toUpperCase() + trip.meta.status.slice(1) === filter;
             const matchesSearch = !search || trip.meta.title.toLowerCase().includes(search.toLowerCase()) || trip.meta.destination.toLowerCase().includes(search.toLowerCase());
             return matchesFilter && matchesSearch;
         }),
@@ -343,9 +336,10 @@ export default function MyTrips() {
                         <Item
                             key={trip.id}
                             trip={trip}
+                            onDuplicate={handleDuplicateTrip}
+                            onShareTrip={handleShareTrip}
+                            onEdit={handleEditTrip}
                             onDelete={deleteTrip}
-                            onDuplicate={duplicateTrip}
-                            onShareTrip={shareTrip}
                             onRate={rateTrip}
                         />
                         ))}

@@ -1,26 +1,11 @@
-import React from "react";
+import { t } from "@lib/styles";
 
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
-const t = {
-  bg:          "var(--color-background-primary,   #ffffff)",
-  bgSecondary: "var(--color-background-secondary, #f9f9f8)",
-  bgTertiary:  "var(--color-background-tertiary,  #f3f3f1)",
-  text:        "var(--color-text-primary,          #111111)",
-  textMuted:   "var(--color-text-secondary,        #666666)",
-  textHint:    "var(--color-text-tertiary,         #bbbbbb)",
-  border:      "var(--color-border-tertiary,       #e5e5e3)",
-  borderMd:    "var(--color-border-secondary,      #ccccca)",
-  borderHeavy: "var(--color-border-primary,        #999997)",
-  accentGrad:  "linear-gradient(135deg, #FF3838 0%, #FFB347 100%)",
-  radiusSm:    8,
-  radiusMd:    12,
-  radiusLg:    16,
-};
-
-
-export default function EmptyState({ onNew }) {
+export default function EmptyState({ 
+    onNew 
+}: {
+    onNew: () => void;
+}) {
     return (
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ textAlign: "center", maxWidth: 380 }}>

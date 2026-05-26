@@ -59,6 +59,10 @@ export default function TripDetail() {
         const importedTrip: Trip = {
             ...decoded,
             id: Date.now(),
+            meta: {
+                ...decoded.meta,
+                title: decoded.meta.title + " (shared)",
+            },
         };
 
         saveTrip(importedTrip);

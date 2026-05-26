@@ -1,5 +1,6 @@
 
 export type StopType = "transit" | "stay" | "place" | "food";// | "activity" | "other"
+export type TripStatus = | "planning" | "ongoing" | "completed";
 
 export type TripMeta = {
     title: string;
@@ -10,7 +11,7 @@ export type TripMeta = {
     dateTo: string;
     travelers: number;
     rating: number | null;
-    status: string;
+    status: TripStatus;
 };
 
 export const initialTripMeta: TripMeta = {
@@ -20,7 +21,7 @@ export const initialTripMeta: TripMeta = {
     dateTo: "",
     travelers: 1,
     rating: null,
-    status: "draft",
+    status: "planning",
 };
 
 export type TripStop = {
@@ -81,6 +82,8 @@ export const initialTrip: Trip = {
     notes: [],
 };
 
+export type TripFilter = "All" | "Planning" | "Ongoing" | "Completed";
+export type TripSort = "Date" | "Name" | "Budget" | "Duration";
 export type TripTab = "plan" | "checklist" | "notes" | "advice"; 
 export type StopId = number;
 export type MoveDir = -1 | 1;

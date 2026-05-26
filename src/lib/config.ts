@@ -16,15 +16,8 @@ export const t = {
     radiusLg:    16,
 };
 
-export const SORT_OPTIONS = ["Date", "Name", "Budget", "Duration"];
-
-export const FILTER_OPTIONS = [
-    { key: "all",       label: "All" },
-    { key: "ongoing",   label: "Ongoing" },
-    //{ key: "upcoming",  label: "Upcoming" },
-    { key: "planning",  label: "Planning" },
-    { key: "completed", label: "Completed" },
-];
+export const SORT_OPTIONS = ["Date", "Name", "Budget", "Duration"] as const;
+export const FILTER_OPTIONS = ["All", "Ongoing", "Planning", "Completed" ] as const;
 
 export const STATUS_CONFIG = {
     ongoing:   { label: "Ongoing", bg: "#EAF3DE", color: "#27500A" }, 
