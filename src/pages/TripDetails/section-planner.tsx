@@ -233,10 +233,18 @@ function StopCard({
                         )}
 
                         <FormField label="Name" style={{ marginBottom: 9 }}>
-                            <input value={stop.name +' - '+ stop.id } onChange={(e) => onSave({ ...stop, name: e.target.value })} style={inputStyle} />
+                            <input 
+                                value={stop.name } 
+                                onChange={(e) => onSave({ ...stop, name: e.target.value })} 
+                                style={inputStyle} 
+                            />
                         </FormField>
                         <FormField label="Address / details" style={{ marginBottom: 9 }}>
-                            <input value={stop.details} onChange={(e) => onSave({ ...stop, details: e.target.value })} style={inputStyle} />
+                            <input 
+                                value={stop.details} 
+                                onChange={(e) => onSave({ ...stop, details: e.target.value })} 
+                                style={inputStyle} 
+                            />
                         </FormField>
                         <div style={{ marginBottom: 9 }}>
                             <label style={{ fontSize: 11, color: t.textMuted, marginBottom: 3, display: "block" }}>Link (maps / info)</label>
