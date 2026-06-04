@@ -107,56 +107,65 @@ function StopCard({
                     }}
                 >
 
-                    {/* Left: badge / name / detail */}
+                    {/* Left: badge + time / name / detail / notes */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+                            <span style={{
                             display: "inline-flex", alignItems: "center",
                             borderRadius: 20, padding: "2px 9px", fontSize: 11, fontWeight: 500,
-                            background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap", marginBottom: 4,
-                        }}>{stop.subtype}</span>
+                            background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap",
+                            }}>{cfg.label}</span>
+                            {stop.time && (
+                            <span style={{ fontSize: 11, color: t.textHint, whiteSpace: "nowrap" }}>
+                                {stop.time.replace(/^.*·\s*/, "")}{stop.duration ? ` · ${stop.duration}` : ""}
+                            </span>
+                            )}
+                        </div>
                         <div style={{ fontSize: 14, fontWeight: 500, color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stop.name}</div>
                         <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.details}</div>
+                        {stop.notes && (
+                            <div style={{ fontSize: 11, color: t.textHint, display: "-webkit-box", WebkitLineClamp: 5, WebkitBoxOrient: "vertical", overflow: "hidden", marginTop: 2 }}>{stop.notes}</div>
+                        )}
                     </div>
+        
+                    {/* Right: link top / controls bottom */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", flexShrink: 0, alignSelf: "stretch" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                            <span className="stop-chevron" style={{
+                            /*display: "inline-flex",*/display: "none", alignItems: "center", justifyContent: "center",
+                            width: 16, height: 16, flexShrink: 0,
+                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s",
+                            }}>
+                            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 1L5 5L9 1" stroke={t.textHint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            </span>
 
-                    {/* Right: time / chips / actions */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <span style={{ fontSize: 12, color: t.textHint, whiteSpace: "nowrap" }}>
-                                {stop.time}
-                            </span>
-                            <span 
-                                className="stop-chevron" 
-                                style={{
-                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                                    width: 16, height: 16, flexShrink: 0,
-                                    transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s",
-                                }}
-                            >
-                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M1 1L5 5L9 1" stroke={t.textHint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                            </span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            {stop.duration !== '' && (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: t.textMuted, background: t.bgSecondary, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>⏱ {stop.duration}</span>
-                            )}
-                            {stop.budget !== '' && (
-                            <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{formatBudget(stop.budget)}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            {stop.budget && (
+                                <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{formatBudget(stop.budget)}</span>
                             )}
                             {stop.link && (
-                            <a href={stop.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} title="Open link" style={{
-                                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                                border: `0.5px solid ${t.border}`, background: t.bgSecondary,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 11, color: t.textMuted, textDecoration: "none",
-                            }}>↗</a>
+                                <a 
+                                    href={stop.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    onClick={(e) => e.stopPropagation()} 
+                                    style={{
+                                        display: "inline-flex", alignItems: "center", gap: 4,
+                                        padding: "2px 9px", borderRadius: 20, flexShrink: 0,
+                                        border: `0.5px solid ${t.border}`, 
+                                        fontSize: 11, textDecoration: "none",
+                                        whiteSpace: "nowrap",
+                                        background: `${t.text}`,
+                                        color: `${t.bg}`,
+                                    }}>↗ Link</a>
                             )}
+                            </div>
                         </div>
                         <div style={{ display: "flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
                             {iconBtn("↑", "Move up",   onMoveUp)}
                             {iconBtn("↓", "Move down", onMoveDown)}
-                            {iconBtn("×", "Delete",    onDelete, true)}
                         </div>
                     </div>
                 </div>
@@ -293,8 +302,33 @@ function StopCard({
                         </div>
                         <FormField label="Notes">
                             <textarea value={stop.notes} onChange={(e) => onSave({ ...stop, notes: e.target.value })}
-                            style={{ ...inputStyle, resize: "vertical", minHeight: 52 }} placeholder="Any extra info…" />
+                            style={{ ...inputStyle, resize: "vertical", minHeight: 70 }} placeholder="Any extra info…" />
                         </FormField>
+
+                        <div style={{ borderTop: `0.5px solid ${t.border}`, marginTop: 12, paddingTop: 12 }}>
+                            <button
+                                onClick={onDelete}
+                                style={{
+                                display: "inline-flex", alignItems: "center", gap: 6,
+                                fontSize: 12, padding: "5px 12px", borderRadius: t.radiusSm,
+                                border: "0.5px solid #f5c6c6", background: "#fff5f5",
+                                color: "#A32D2D", cursor: "pointer", fontFamily: "inherit",
+                                transition: "background .12s, border-color .12s",
+                                }}
+                                onMouseEnter={(e) => {
+                                const el = e.currentTarget as HTMLButtonElement;
+                                el.style.background = "#FCEBEB";
+                                el.style.borderColor = "#e8a0a0";
+                                }}
+                                onMouseLeave={(e) => {
+                                const el = e.currentTarget as HTMLButtonElement;
+                                el.style.background = "#fff5f5";
+                                el.style.borderColor = "#f5c6c6";
+                                }}
+                            >
+                                <span style={{ fontSize: 13 }}>×</span> Delete stop
+                            </button>
+                        </div>
                     </div>
                 )}
                 </div>
