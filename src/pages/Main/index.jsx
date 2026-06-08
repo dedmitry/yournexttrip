@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-import Preloader from "@pages/Preloader";
-import Welcome from "@pages/Welcome";
+import LoadingPage from "@pages/Preloader";
+import WelcomeScreen from "@pages/Welcome";
 import MyTrips from "@pages/MyTrips/index";
 
 import { checkDBExists } from "@utils/storage";
@@ -9,29 +9,28 @@ import { checkDBExists } from "@utils/storage";
 
 export default function Main() {
     const [state, setState] = useState("loading"); // "loading" | "welcome" | "app"
+    
+    const [doneLoading, setDoneLoading] = useState(false);
 
-
-    const resolveScreen = async () => {
+    useEffect(() => {
+        (async () => {
         try {
             const exists = await checkDBExists();
             setState(exists ? "app" : "welcome");
         } catch (_) {
             setState("welcome");
         }
-    };
-    
-    useEffect(() => {
-        resolveScreen();
+        })();
     }, []);
     
 
-    if (state === "loading") {
-        return <Preloader onDone={resolveScreen} />;
+    if (!doneLoading) {
+        return <LoadingPage onComplete={() => setDoneLoading(true)} />;
     }
 
     if (state === "welcome") {
-        return <Welcome onStart={() => setState("app")} />;
+        return <WelcomeScreen onStart={() => setState("app")} />;
     }
 
-    return <MyTrips />;
+    return <MyTrips />; 
 }
