@@ -458,6 +458,15 @@ export default function TripModal({
                                         type="date"
                                         {...a11y("end")}
                                         className={`${fieldClass(!!errors.end)} block w-full min-w-0 max-w-full`}
+                                                                                    style={{
+                                                        height: "42px",
+        lineHeight: "42px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        boxSizing: "border-box",
+        textAlign: "left",
+        WebkitAppearance: "none",
+    }}
                                         value={end}
                                         onChange={change(setEnd, "start", "end")}
                                     />
