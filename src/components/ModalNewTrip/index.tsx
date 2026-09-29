@@ -414,7 +414,7 @@ export default function TripModal({
                                 When
                             </h3>
 
-                            <div className="grid grid-cols-2 items-start gap-3">
+                            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
                                 <div className="min-w-0 flex flex-col gap-1.5">
                                     <label
                                         htmlFor={fieldId("start")}
@@ -426,19 +426,7 @@ export default function TripModal({
                                     <input
                                         type="date"
                                         {...a11y("start")}
-                                                    className="
-                block
-                w-full
-                min-w-0
-                h-11
-                rounded-lg
-                border
-                border-gray-300
-                bg-white
-                px-3
-                text-sm
-                text-gray-900
-            "
+                                        className={`${fieldClass(!!errors.start)} block w-full min-w-0 max-w-full`}
                                         value={start}
                                         onChange={change(setStart, "start", "end")}
                                     />
@@ -460,19 +448,7 @@ export default function TripModal({
                                     <input
                                         type="date"
                                         {...a11y("end")}
-                                                    className="
-                block
-                w-full
-                min-w-0
-                h-11
-                rounded-lg
-                border
-                border-gray-300
-                bg-white
-                px-3
-                text-sm
-                text-gray-900
-            "
+                                        className={`${fieldClass(!!errors.end)} block w-full min-w-0 max-w-full`}
                                         value={end}
                                         onChange={change(setEnd, "start", "end")}
                                     />
