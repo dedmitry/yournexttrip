@@ -196,3 +196,10 @@ export function getDayLabel(day: number, dateFrom: string | Date) {
         return `Day ${day}`;
     }
 }
+
+
+export const plural = (
+    n: number,
+    one: string,
+    many: string
+) => `${n} ${n === 1 ? one : many}`;

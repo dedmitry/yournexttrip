@@ -4,7 +4,7 @@ import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import Header from "@/components/PageHeader";
 import Footer from "@/components/PageFooter";
 import NewTripModal from "@/components/ModalNewTrip";
-import SectionToolbar from "./section-toolbar";
+import { useToast } from "@/components/ToastMessage"
 import SectionSummary from "./section-summary";
 import SectionPlanner from "./section-planner";
 import ChecklistTab from "./tab-checklist";
@@ -14,7 +14,6 @@ import { Trip, initialTrip, TripStop, TripTab, CheckItem, Note } from "@/types/t
 
 import { getTrip, editTrip, saveTrip, deleteTrip } from "@/utils/storage";
 import { createTripShareUrl, decodeTrip } from "@/utils/tripShare";
-import { t } from "@/lib/config";
 
 
 export default function TripDetail() {
@@ -31,7 +30,9 @@ export default function TripDetail() {
     const [loaded, setLoaded] = useState(false);
     const [trip, setTrip] = useState(initialTrip);
     const [activeTab, setActiveTab] = useState<TripTab>("plan");
-    const [showModal, setShowModal]   = useState(false);
+
+    const [showModal, setShowModal]   = useState(false); 
+    const [showToast, , toastNode] = useToast();
 
 
     // Load from DB on mount
@@ -131,6 +132,8 @@ export default function TripDetail() {
         await saveTrip(copy);
         setTrip(copy);
 
+        showToast(`“${copy.meta.title}” created`);
+
         navigate(`/trip/${copy.id}`, {
             replace: true,
         });
@@ -140,9 +143,15 @@ export default function TripDetail() {
         navigator.clipboard.writeText(createTripShareUrl(trip));
     };
 
-    const handleEditTrip = async (trip: Trip) => {
+    const changeTrip = async (trip: Trip) => {
         await editTrip(trip.id, trip);
+        setTrip(trip);
+        showToast(`“${trip.meta.title}” changed`);
+    };
+
+    const handleEditTrip = async (trip: Trip) => {
         setTrip(trip)
+        setShowModal(true)
     };
 
     const handleDeleteTrip = async (id: number) => {
@@ -180,61 +189,52 @@ export default function TripDetail() {
     }
 
     return (
-        <div
-            className="min-h-screen flex flex-col"
-            style={{ background: t.bg }}
-        >
-			<Header />
-			
-			<main className="flex-1 flex flex-col w-full max-w-[1120px] mx-auto px-3 py-6">
-                <SectionToolbar 
-                    tripTitle={trip.meta?.title || ""} 
-                    activeTab={activeTab} 
-                    onTabChange={setActiveTab} 
-                />
+        <div className="flex min-h-screen min-h-[100dvh] flex-col bg-[#F4F6FA] font-['Schibsted_Grotesk',_'Segoe_UI',_system-ui,_sans-serif] text-[#111827] antialiased">
+            <Header />
 
-                <div className="w-full max-w-[720px] mx-auto pt-8 pb-10">
-                    {activeTab === "plan" &&
-                    <>
-                    <SectionSummary 
-                        trip={trip}
-                        onDuplicate={handleDuplicateTrip} 
-                        onShareTrip={handleShareTrip}
-                        onEdit={() => setShowModal(true)}
-                        onDelete={handleDeleteTrip}
-                        onRate={handleRateTrip}
-                    />
-                    <SectionPlanner 
-                        meta={trip.meta}
-                        stops={trip.stops}
-                        updateStops={updateStops}
-                    />
-                    </>
-                    }
-                    {activeTab === "checklist" && 
-                    <ChecklistTab 
-                        checklist={trip.checklist}
-                        updateChecklist={updateChecklist}
-                    />
-                    }
-                    {activeTab === "notes" && 
-                    <NotesTab 
-                        noteslist={trip.notes}
-                        updateNotes={updateNotes}
-                    />
-                    }
-                </div>
-            </main>
+            <SectionSummary 
+                trip={trip}
+                activeTab={activeTab} 
+                onTabChange={setActiveTab} 
+                onDuplicate={handleDuplicateTrip} 
+                onShareTrip={handleShareTrip}
+                onEdit={handleEditTrip}
+                onDelete={handleDeleteTrip}
+                onRate={handleRateTrip}
+            />
+
+            {activeTab === "plan" &&
+            <SectionPlanner 
+                meta={trip.meta}
+                stops={trip.stops}
+                updateStops={updateStops}
+            />
+            }
+            {activeTab === "checklist" && 
+            <ChecklistTab 
+                checklist={trip.checklist}
+                updateChecklist={updateChecklist}
+            />
+            }
+            {activeTab === "notes" && 
+            <NotesTab 
+                noteslist={trip.notes}
+                updateNotes={updateNotes}
+            />
+            }
 
             <Footer />
 
             {showModal && (
-                <NewTripModal 
-                    trip={trip}
-                    onSave={handleEditTrip} 
-                    onClose={() => setShowModal(false)} 
-                />
+            <NewTripModal 
+                trip={trip}
+                onSave={changeTrip} 
+                onEdit={changeTrip}
+                onClose={() => setShowModal(false)} 
+            />
             )}
+
+            {toastNode}
         </div>
     );
 }

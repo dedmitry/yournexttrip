@@ -1,570 +1,397 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-import Footer from "@components/PageFooter";
+import Header from "@/components/PageHeader";
+import Footer from "@/components/PageFooter";
 
-import { initDB } from "@utils/storage";
+const SAMPLE_TRIP_URL = "https://your-next-trip.netlify.app/trip/1790473857311#";
 
+/* ---------- icons (same set as the planner) ---------- */
+const makeIcon = (paths) =>
+  function Icon({ className = "" }) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+        {paths}
+      </svg>
+    );
+  };
+const IconTransit = makeIcon(<><rect x="5" y="3" width="14" height="13" rx="3" /><path d="M5 10h14M8 20l2-4M16 20l-2-4" /></>);
+const IconStay = makeIcon(<><path d="M3 18V7M3 13h18v5M21 13a3 3 0 0 0-3-3h-7v3" /><circle cx="7" cy="10" r="1.5" /></>);
+const IconPlace = makeIcon(<><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></>);
+const IconFood = makeIcon(<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 1-3 3-3 6v3h3v9" />);
+const IconRoute = makeIcon(<><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" /><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7" /></>);
+const IconClock = makeIcon(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>);
+const IconLink = makeIcon(<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />);
+const IconCheck = makeIcon(<path d="M5 12.5l4.5 4.5L19 7.5" />);
+const IconNote = makeIcon(<><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5M9 13h7M9 17h5" /></>);
+const IconList = makeIcon(<><path d="M9 6h11M9 12h11M9 18h11" /><path d="M4 6l1 1 2-2M4 12l1 1 2-2" /><circle cx="5" cy="18" r="1" /></>);
+const IconDay = makeIcon(<><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></>);
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
-const GRAD = "linear-gradient(135deg, #FF3838 0%, #FFB347 100%)";
-const GRAD_TEXT = "linear-gradient(135deg, #FF3838 0%, #FF8C00 60%, #FFB347 100%)";
-
-const t = {
-  bg:         "var(--color-background-primary,   #ffffff)",
-  bgSecondary:"var(--color-background-secondary, #f9f9f8)",
-  bgTertiary: "var(--color-background-tertiary,  #f3f3f1)",
-  text:       "var(--color-text-primary,          #111111)",
-  textMuted:  "var(--color-text-secondary,        #666666)",
-  textHint:   "var(--color-text-tertiary,         #bbbbbb)",
-  border:     "var(--color-border-tertiary,       #e5e5e3)",
-  borderMd:   "var(--color-border-secondary,      #ccccca)",
-  radiusSm:   8,
-  radiusMd:   12,
-  radiusLg:   16,
+const TYPES = {
+  transit: { label: "Transit", c: "#2F5BD3", cb: "#E8EEFC", icon: IconTransit },
+  stay: { label: "Stay", c: "#7A3FC4", cb: "#F1EAFB", icon: IconStay },
+  place: { label: "Place", c: "#0E6E66", cb: "#E3F2EF", icon: IconPlace },
+  food: { label: "Food", c: "#B45309", cb: "#FDF0E1", icon: IconFood },
 };
 
-// ─── Feature data ─────────────────────────────────────────────────────────────
+/* ---------- sample day (mirrors a real planner day) ---------- */
+const SAMPLE_DAY = [
+  { id: 1, type: "transit", sub: "Train", start: 600, dur: 135, name: "Tokyo Station → Kyoto Station", details: "Nozomi 215, car 7, seats 12A–B", link: "smart-ex.jp", cost: 130 },
+  { id: 2, type: "stay", sub: "Hotel", start: 780, dur: 0, name: "Check in at Hotel Granvia Kyoto", details: "Inside Kyoto Station, 3rd floor lobby", link: "granvia-kyoto.co.jp", cost: 180, travelNext: "Bus 5 to Fushimi Inari, 25 min, $2" },
+  { id: 3, type: "place", sub: "Sight", start: 900, dur: 120, name: "Fushimi Inari Shrine", details: "68 Fukakusa Yabunouchicho", cost: 0 },
+  { id: 4, type: "food", sub: "Restaurant", start: 1140, dur: 90, name: "Dinner in Pontocho", details: "Pontocho Alley, Nakagyo Ward", cost: 60, notes: "Booked for 2, confirmation 4821" },
+];
 
+const t12 = (m) => {
+  m = ((m % 1440) + 1440) % 1440;
+  const h = Math.floor(m / 60);
+  return `${h % 12 || 12}:${String(m % 60).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+const fmtD = (m) => {
+  const h = Math.floor(m / 60), r = m % 60;
+  return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r} min`;
+};
 
+/* ---------- site header and footer (same as the My trips page) ---------- */
+const HOME_URL = SAMPLE_TRIP_URL;
 
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function useVisible(threshold = 0.15) {
-  const [ref, setRef] = useState(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    if (!ref) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold });
-    obs.observe(ref);
-    return () => obs.disconnect();
-  }, [ref]);
-  return [setRef, visible];
-}
-
-// ─── SiteHeader ───────────────────────────────────────────────────────────────
-
-function SiteHeader({ onCTA }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-
+export function SiteHeader({ homeUrl = HOME_URL, children }) {
   return (
-    <header 
-    
-    style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: scrolled ? t.bg : "transparent",
-      borderBottom: scrolled ? `0.5px solid ${t.border}` : "none",
-      transition: "background .2s, border-color .2s",
-    }}>
-      <div style={{
-        maxWidth: 1120, margin: "0 auto", padding: "0 24px",
-        display: "flex", alignItems: "center", justifyContent: "space-between", height: 60,
-      }}>
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
-          <div style={{
-            width: 30, height: 30, borderRadius: 8, background: GRAD,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 15, color: "#fff", fontWeight: 700,
-          }}></div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: t.text, letterSpacing: "-0.3px" }}>
-            YourNextTrip
-          </span>
-        </Link>
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={onCTA} style={{
-            fontSize: 13, padding: "7px 16px", borderRadius: 20,
-            border: "none", background: GRAD,
-            color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 600,
-          }}>Start for free</button>
+    <header className="border-b border-[#E1E5EC] bg-white">
+      <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-3.5">
+        <div className="flex items-start gap-3 sm:items-center">
+          {/* Dawn sky logo */}
+          <span
+            aria-hidden="true"
+            className="h-11 w-11 shrink-0 rounded-[10px] bg-[linear-gradient(135deg,#7B6CF6_0%,#FF7E8A_50%,#FFC46B_100%)]"
+          />
+          <div className="flex min-h-11 flex-col sm:h-11 sm:justify-between">
+            <a
+              href={homeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-lg font-extrabold leading-6 tracking-[-0.01em] text-[#111827] no-underline hover:text-[#0E6E66] focus-visible:rounded focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#0E6E66]"
+            >
+              YourNextTrip
+            </a>
+            <p className="m-0 text-sm leading-5 text-[#4A5568]">
+              Plan your perfect trip — every stop, every moment.
+            </p>
+          </div>
         </div>
+        {children}
       </div>
     </header>
   );
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
 
-function Hero({ onCTA }) {
+
+
+/* ---------- product preview: one planner day ---------- */
+function PreviewCard({ it }) {
+  const T = TYPES[it.type];
+  const Icon = T.icon;
   return (
-    <section style={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      padding: "120px 24px 80px", textAlign: "center",
-      background: `radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,56,56,0.07) 0%, transparent 70%), ${t.bg}`,
-    }}>
-      <div style={{ maxWidth: 760 }}>
-
-        {/* Badge */}
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 7,
-          background: t.bgSecondary, border: `0.5px solid ${t.border}`,
-          borderRadius: 20, padding: "5px 14px", marginBottom: 32,
-          fontSize: 12, color: t.textMuted,
-        }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4CAF50", display: "inline-block" }} />
-          Free to start · No credit card needed
-        </div>
-
-        {/* Heading */}
-        <h1 style={{
-          fontSize: "clamp(42px, 8vw, 72px)", fontWeight: 700, lineHeight: 1.08,
-          letterSpacing: "-2.5px", color: t.text, margin: "0 0 24px",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-        }}>
-          Your next trip,{" "}
-          <span style={{
-            background: GRAD_TEXT,
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}>
-            planned perfectly.
-          </span>
-        </h1>
-
-        {/* Sub */}
-        <p style={{
-          fontSize: 18, color: t.textMuted, lineHeight: 1.7,
-          maxWidth: 520, margin: "0 auto 40px",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-        }}>
-          Build beautiful day-by-day itineraries — every stop, every meal,
-          every transfer — in one place. Share in a tap.
-        </p>
-
-        {/* CTAs */}
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={onCTA} style={{
-            fontSize: 15, padding: "13px 28px", borderRadius: 28,
-            border: "none", background: GRAD, color: "#fff",
-            cursor: "pointer", fontFamily: "inherit", fontWeight: 600,
-            boxShadow: "0 4px 20px rgba(255,56,56,0.28)",
-          }}>Plan my trip →</button>
-          <button
-          onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
-          style={{
-            fontSize: 15, padding: "13px 28px", borderRadius: 28,
-            border: `0.5px solid ${t.borderMd}`, background: "transparent",
-            color: t.text, cursor: "pointer", fontFamily: "inherit",
-          }}>See an example</button>
-        </div>
-
-        {/* Trust line */}
-        <p style={{ fontSize: 13, color: t.textHint, marginTop: 24 }}>
-          Trusted by 12,000+ travellers · 4.9 ★ rating
-        </p>
+    <article style={{ "--c": T.c, "--cb": T.cb }} className="rounded-[14px] bg-white px-3 py-[11px] shadow-[0_0_0_1px_#B8C1CE] sm:px-4 sm:py-3">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] font-bold text-[var(--c)]">
+          <i className="grid h-5 w-5 place-items-center rounded-md bg-[var(--cb)]"><Icon className="h-3 w-3" /></i>
+          {T.label}
+          <em className="font-medium not-italic text-[#4A5568]">/ {it.sub}</em>
+        </span>
+        <span className="order-3 basis-full whitespace-nowrap text-[13px] text-[#2F3A4D] sm:order-none sm:basis-auto sm:border-l sm:border-[#B8C1CE] sm:pl-2.5">
+          {t12(it.start)}{it.dur ? ` – ${t12(it.start + it.dur)}` : ""}
+          {it.dur > 0 && <span className="text-[#4A5568]"><span className="mx-1.5">·</span>{fmtD(it.dur)}</span>}
+        </span>
+        <span className="ml-auto flex items-center gap-2.5 sm:gap-3.5">
+          {it.link && (
+            <span className="hidden items-center gap-[5px] text-[13px] font-semibold text-[#1D5FD6] sm:inline-flex">
+              <IconLink className="h-3.5 w-3.5" />{it.link}
+            </span>
+          )}
+          <span className="whitespace-nowrap text-[13px] font-bold text-[#111827]">{it.cost === 0 ? "Free" : `$${it.cost}`}</span>
+        </span>
       </div>
-    </section>
+      <div className="mt-1 text-base font-bold leading-[1.3] text-[#111827] sm:text-[17px]">{it.name}</div>
+      <div className="mt-0.5 truncate text-sm leading-[1.45] text-[#2F3A4D]">{it.details}</div>
+      {it.notes && (
+        <div className="mt-0.5 truncate text-sm leading-[1.45] text-[#4A5568]"><b className="font-semibold text-[#2F3A4D]">Note: </b>{it.notes}</div>
+      )}
+    </article>
   );
 }
 
-// ─── Feature SVG icons ────────────────────────────────────────────────────────
-
-const FEATURE_ICONS = {
-  "01": (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="6" cy="7" r="2" stroke="#FF3838" strokeWidth="1.5"/>
-      <line x1="10" y1="7" x2="24" y2="7" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round"/>
-      <circle cx="6" cy="14" r="2" stroke="#FF7A00" strokeWidth="1.5"/>
-      <line x1="10" y1="14" x2="24" y2="14" stroke="#FF7A00" strokeWidth="1.5" strokeLinecap="round"/>
-      <circle cx="6" cy="21" r="2" stroke="#FFB347" strokeWidth="1.5"/>
-      <line x1="10" y1="21" x2="24" y2="21" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="6" y1="9" x2="6" y2="12" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 2"/>
-      <line x1="6" y1="16" x2="6" y2="19" stroke="#FF7A00" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 2"/>
-    </svg>
-  ),
-  "02": (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="5" width="22" height="20" rx="3" stroke="#FF3838" strokeWidth="1.5"/>
-      <line x1="3" y1="11" x2="25" y2="11" stroke="#FF3838" strokeWidth="1.5"/>
-      <line x1="9" y1="3" x2="9" y2="7" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="19" y1="3" x2="19" y2="7" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round"/>
-      <rect x="7" y="14" width="4" height="4" rx="1" fill="#FFB347" stroke="none"/>
-      <rect x="13" y="14" width="4" height="4" rx="1" fill="#FF7A00" stroke="none" opacity="0.6"/>
-      <rect x="19" y="14" width="4" height="4" rx="1" fill="#FFB347" stroke="none" opacity="0.4"/>
-      <rect x="7" y="20" width="4" height="3" rx="1" fill="#FFB347" stroke="none" opacity="0.4"/>
-      <rect x="13" y="20" width="4" height="3" rx="1" fill="#FF3838" stroke="none" opacity="0.5"/>
-    </svg>
-  ),
-  "03": (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="14" r="11" stroke="#FF3838" strokeWidth="1.5"/>
-      <path d="M14 7v2M14 19v2" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M11 10.5c0-1.1.9-2 2-2h2a2 2 0 0 1 0 4h-2a2 2 0 0 0 0 4h2a2 2 0 0 0 2-2" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M11 17.5c0 1.1.9 2 2 2" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  ),
-  "04": (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 3C10.1 3 7 6.1 7 10c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7z" stroke="#FF3838" strokeWidth="1.5" strokeLinejoin="round"/>
-      <circle cx="14" cy="10" r="2.5" stroke="#FF3838" strokeWidth="1.5"/>
-      <line x1="18" y1="20" x2="24" y2="20" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="18" y1="23" x2="22" y2="23" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-      <line x1="18" y1="17" x2="26" y2="17" stroke="#FF7A00" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-    </svg>
-  ),
-  "05": (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 4a7 7 0 0 1 4 12.7V19h-8v-2.3A7 7 0 0 1 14 4z" stroke="#FF3838" strokeWidth="1.5" strokeLinejoin="round"/>
-      <line x1="11" y1="21" x2="17" y2="21" stroke="#FF3838" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="12" y1="23.5" x2="16" y2="23.5" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="14" y1="9" x2="14" y2="15" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round"/>
-      <circle cx="14" cy="8" r="1" fill="#FFB347"/>
-    </svg>
-  ),
-  "06": (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="21" cy="7" r="3" stroke="#FF3838" strokeWidth="1.5"/>
-      <circle cx="7" cy="14" r="3" stroke="#FF3838" strokeWidth="1.5"/>
-      <circle cx="21" cy="21" r="3" stroke="#FFB347" strokeWidth="1.5"/>
-      <line x1="9.6" y1="12.7" x2="18.4" y2="8.3" stroke="#FF7A00" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="9.6" y1="15.3" x2="18.4" y2="19.7" stroke="#FFB347" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  ),
-};
-
-// ─── Features ─────────────────────────────────────────────────────────────────
-
-const FEATURE_LIST = [
-  { n: "01", title: "Every stop, organised",   desc: "Transport, hotels, places, restaurants — one clean timeline with durations and travel times between every point." },
-  { n: "02", title: "Day-by-day structure",     desc: "Build your trip day by day. Add, reorder, and edit stops freely. See the full journey at a glance." },
-  { n: "03", title: "Live budget tracking",     desc: "Set a cost per stop. Your total updates in real time — no spreadsheet, no surprises at checkout." },
-  { n: "04", title: "Maps, bookings & notes",   desc: "Attach Google Maps links, booking URLs, and personal notes directly to each stop." },
-  { n: "05", title: "Smart travel tips",        desc: "Destination tips you can read and dismiss. Etiquette, transit, weather — whatever your trip needs." },
-  { n: "06", title: "Instant sharing",          desc: "Export as PDF or share a live link in one tap. Your crew always has the latest plan." },
-];
-
-function Features() {
-  const [setRef, visible] = useVisible(0.05);
-
+function PreviewGap({ prev, next }) {
+  const wrap = "my-1 flex min-h-[30px] items-center gap-2.5 sm:ml-[22px] sm:before:mr-1 sm:before:self-stretch sm:before:border-l-2 sm:before:border-dashed sm:before:border-[#B8C1CE] sm:before:content-['']";
+  if (prev.travelNext) {
+    return (
+      <div className={wrap}>
+        <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full bg-[#E8EEFC] pl-2 pr-3 text-[13px] font-semibold text-[#2F5BD3]">
+          <IconRoute className="h-[13px] w-[13px] shrink-0" /><span className="truncate">{prev.travelNext}</span>
+        </span>
+      </div>
+    );
+  }
+  const gap = next.start - (prev.start + prev.dur);
   return (
-    <section ref={setRef} style={{
-      padding: "100px 24px",
-      background: t.bgSecondary,
-      borderTop: `0.5px solid ${t.border}`,
-    }}>
-      <div style={{ maxWidth: 960, margin: "0 auto" }}>
+    <div className={wrap}>
+      <span className="inline-flex h-[26px] items-center gap-1.5 rounded-full bg-[#F4F6FA] pl-2 pr-2.5 text-[13px] font-semibold text-[#2F3A4D]">
+        <IconClock className="h-[13px] w-[13px]" />Next in {fmtD(gap)}
+      </span>
+    </div>
+  );
+}
 
-        {/* Header */}
-        <div style={{
-          textAlign: "center", marginBottom: 72,
-          opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)",
-          transition: "opacity .5s ease, transform .5s ease",
-        }}>
-          <h2 style={{
-            fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 800,
-            color: "#111", letterSpacing: "-2px", lineHeight: 1.08,
-            margin: "0 0 16px",
-            fontFamily: "Georgia, 'Times New Roman', serif",
-          }}>Everything a trip needs.</h2>
-          <p style={{
-            fontSize: 17, color: "#666", lineHeight: 1.7,
-            maxWidth: 440, margin: "0 auto",
-          }}>One place for every part of your journey — no spreadsheets, no chaos.</p>
+function DayPreview() {
+  const total = SAMPLE_DAY.reduce((s, x) => s + x.cost, 0);
+  return (
+    <figure className="m-0">
+      <section aria-label="Sample day from a trip plan" className="rounded-[20px] bg-white shadow-[0_0_0_1px_#E1E5EC,0_24px_60px_rgba(17,24,39,.10)] sm:rounded-3xl">
+        <div className="rounded-t-[20px] border-b border-[#E1E5EC] px-[18px] pb-3.5 pt-[18px] sm:rounded-t-3xl sm:px-7 sm:pb-4 sm:pt-[22px]">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-[34px] font-extrabold leading-none tracking-[-0.03em] sm:text-[44px]">5</span>
+            <span className="flex flex-col leading-[1.25]">
+              <b className="text-[19px] font-extrabold sm:text-[22px]">Wednesday</b>
+              <span className="text-[17px] text-[#4A5568]">October 14, 2026</span>
+            </span>
+            <span className="ml-auto text-right leading-[1.3]">
+              <b className="block text-[19px] font-extrabold sm:text-[22px]">${total}</b>
+              <span className="text-base text-[#4A5568]">4 actions</span>
+            </span>
+          </div>
+          <div aria-hidden="true" className="relative mt-3.5 h-1.5 overflow-hidden rounded-[3px] bg-[#F4F6FA]">
+            {SAMPLE_DAY.map((x) => (
+              <i key={x.id} className="absolute inset-y-0 rounded-sm" style={{ left: `${(x.start / 1440) * 100}%`, width: `${(Math.max(x.dur, 20) / 1440) * 100}%`, background: TYPES[x.type].c }} />
+            ))}
+          </div>
+          <div aria-hidden="true" className="mt-1 flex justify-between text-[11px] text-[#4A5568]">
+            <span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span>
+          </div>
         </div>
-
-        {/* 2-column card grid */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 420px), 1fr))",
-          gap: 12,
-        }}>
-          {FEATURE_LIST.map((f, i) => (
-            <div key={f.n} style={{
-              background: "#fff",
-              border: `0.5px solid ${t.border}`,
-              borderRadius: 16,
-              padding: "28px 24px 24px",
-              opacity: visible ? 1 : 0,
-              transform: visible ? "none" : "translateY(20px)",
-              transition: `opacity .5s ease ${i * 60}ms, transform .5s ease ${i * 60}ms`,
-            }}>
-              {/* Icon + number row */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 12,
-                  background: t.bgSecondary, border: `0.5px solid ${t.border}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0,
-                }}>{FEATURE_ICONS[f.n]}</div>
-                <div style={{
-                  fontSize: 12, fontWeight: 800, letterSpacing: "0.5px",
-                  background: GRAD_TEXT,
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-                }}>{f.n}</div>
-              </div>
-
-              {/* Title */}
-              <div style={{
-                fontSize: 20, fontWeight: 700, color: "#111",
-                letterSpacing: "-0.5px", lineHeight: 1.3,
-                marginBottom: 12,
-                fontFamily: "Georgia, 'Times New Roman', serif",
-              }}>{f.title}</div>
-
-              {/* Description */}
-              <div style={{ fontSize: 15, color: "#555", lineHeight: 1.7 }}>{f.desc}</div>
+        <div className="px-3 pb-5 pt-3.5 sm:px-7 sm:pb-7 sm:pt-[18px]">
+          {SAMPLE_DAY.map((it, k) => (
+            <div key={it.id}>
+              {k > 0 && <PreviewGap prev={SAMPLE_DAY[k - 1]} next={it} />}
+              <PreviewCard it={it} />
             </div>
           ))}
         </div>
+      </section>
+      <figcaption className="mt-3 text-center text-sm text-[#4A5568]">Day 5 of a sample Tokyo and Kyoto trip</figcaption>
+    </figure>
+  );
+}
 
+/* ---------- hero ---------- */
+function Hero({ onComplete }) {
+  return (
+    <section className="px-4 pb-16 pt-10 sm:px-6 sm:pt-14 lg:pb-24 lg:pt-20">
+      <div className="mx-auto grid max-w-[1192px] items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,560px)] lg:gap-16">
+        <div className="max-w-[560px]">
+          <h1 className="m-0 text-[40px] font-extrabold leading-[1.05] tracking-[-0.035em] text-[#111827] sm:text-[58px]">
+            You know where you’re going. Keep it all in one plan.
+          </h1>
+          <p className="mb-9 mt-6 max-w-[500px] text-lg leading-[1.6] text-[#2F3A4D]">
+            Put every flight, hotel, sight and dinner on a day-by-day timeline, with times, costs and links. A checklist and notes sit right beside it.
+          </p>
+          <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => onComplete()}
+                  className="
+                      inline-flex h-[52px] w-full min-w-[160px] sm:w-auto 
+                      items-center justify-center gap-2 
+                      rounded-[14px] 
+                      bg-[linear-gradient(135deg,#7B6CF6_0%,#FF7E8A_50%,#FFC46B_100%)] 
+                      text-[15px] font-extrabold text-white [text-shadow:0_1px_2px_rgba(60,30,80,.4)] shadow-[0_8px_22px_rgba(255,126,138,.38)] transition 
+                      hover:-translate-y-px hover:brightness-105 hover:saturate-[1.1] hover:shadow-[0_12px_28px_rgba(255,126,138,.48)] 
+                      focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#0E6E66] 
+                      px-8 
+                  "
+              >
+              Start planning
+            </button>
+          </div>
+          <p className="mt-5 flex items-center gap-2 text-sm text-[#4A5568]">
+            <IconCheck className="h-4 w-4 text-[#13795B]" />Free to start, no credit card needed
+          </p>
+        </div>
+        <DayPreview />
       </div>
     </section>
   );
 }
 
-
-// ─── How it works ─────────────────────────────────────────────────────────────
-
-const DAY1_STOPS = [
-  { id: 1, type: "transport", name: "Flight JFK → NRT",       detail: "Japan Airlines JL006 · Economy",  time: "Sep 3 · 11:00",    duration: "14h 5m",  budget: "$1,200",     link: true,  travelNext: "50 min · Narita Express" },
-  { id: 2, type: "hotel",     name: "Shinjuku Granbell Hotel", detail: "2-14-5 Kabukicho, Shinjuku-ku",  time: "Sep 3 · check-in", duration: "5 nights",budget: "$180/night", link: true,  travelNext: "5 min · walk" },
-  { id: 3, type: "food",      name: "Ichiran Ramen",           detail: "3-34-11 Shinjuku, Tokyo",        time: "Sep 3 · 21:00",    duration: "45 min",  budget: "$12",        link: true,  travelNext: "10 min · walk" },
-  { id: 4, type: "place",     name: "Kabukicho Neon Walk",     detail: "Kabukicho, Shinjuku",            time: "Sep 3 · 22:00",    duration: "1h",      budget: "Free",       link: false, travelNext: "" },
-];
-
-const SCFG = {
-  transport: { label: "Transport",  icon: "✈", iconBg: "#E6F1FB", iconColor: "#0C447C", dotColor: "#85B7EB", badgeBg: "#E6F1FB", badgeText: "#0C447C" },
-  hotel:     { label: "Hotel",      icon: "⌂", iconBg: "#EEEDFE", iconColor: "#3C3489", dotColor: "#AFA9EC", badgeBg: "#EEEDFE", badgeText: "#3C3489" },
-  food:      { label: "Restaurant", icon: "⊕", iconBg: "#FAEEDA", iconColor: "#633806", dotColor: "#EF9F27", badgeBg: "#FAEEDA", badgeText: "#633806" },
-  place:     { label: "Place",      icon: "◎", iconBg: "#EAF3DE", iconColor: "#27500A", dotColor: "#97C459", badgeBg: "#EAF3DE", badgeText: "#27500A" },
-};
-
-function IaBtn({ label }) {
+/* ---------- the three areas of a trip ---------- */
+function MiniChecklist() {
+  const groups = [
+    { name: "Documents", items: [["Passport", true], ["JR reservation", true]] },
+    { name: "Money", items: [["Yen for the first days", false]] },
+    { name: "Health", items: [["Medication", false]] },
+  ];
   return (
-    <button title={label} aria-label={label} style={{
-      width: 24, height: 24, borderRadius: 6,
-      border: "0.5px solid #e5e5e3", background: "transparent",
-      cursor: "pointer", color: "#bbb",
-      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12,
-    }}>{label}</button>
-  );
-}
-
-function PreviewStopCard({ stop, isLast }) {
-  const cfg = SCFG[stop.type];
-  return (
-    <div style={{ display: "flex", gap: 0 }}>
-      {/* Gutter */}
-      <div className="stop-gutter" style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 11 }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: "50%",
-          background: cfg.iconBg, color: cfg.iconColor,
-          border: `1.5px solid ${cfg.dotColor}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, flexShrink: 0, zIndex: 1,
-        }}>{cfg.icon}</div>
-        {!isLast && <div style={{ width: 1, background: "#e5e5e3", flex: 1, minHeight: 8 }} />}
-      </div>
-
-      {/* Card */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ background: "#fff", border: "0.5px solid #e5e5e3", borderRadius: 12, overflow: "hidden" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px" }}>
-
-            {/* Left: badge / name / detail */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", borderRadius: 20,
-                padding: "2px 9px", fontSize: 11, fontWeight: 500,
-                background: cfg.badgeBg, color: cfg.badgeText, whiteSpace: "nowrap", marginBottom: 4,
-              }}>{cfg.label}</span>
-              <div style={{ fontSize: 14, fontWeight: 500, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stop.name}</div>
-              <div style={{ fontSize: 12, color: "#888", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{stop.detail}</div>
-            </div>
-
-            {/* Right: time / chips / actions */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
-              <span style={{ fontSize: 12, color: "#bbb", whiteSpace: "nowrap" }}>{stop.time}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                {stop.duration && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "#666", background: "#f5f5f4", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>⏱ {stop.duration}</span>
-                )}
-                {stop.budget && (
-                  <span className="stop-budget" style={{ fontSize: 11, fontWeight: 500, color: "#27500A", background: "#EAF3DE", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{stop.budget}</span>
-                )}
-                {stop.link && (
-                  <span style={{ width: 22, height: 22, borderRadius: 6, border: "0.5px solid #e5e5e3", background: "#f9f9f8", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#888" }}>↗</span>
-                )}
-              </div>
-              <div style={{ display: "flex", gap: 3 }}>
-                <IaBtn label="↑" /><IaBtn label="↓" /><IaBtn label="×" />
-              </div>
-            </div>
-
-            <span className="stop-chevron" style={{ fontSize: 13, color: "#ccc", marginLeft: 2, flexShrink: 0 }}>⌄</span>
-          </div>
+    <div className="flex flex-col gap-3 rounded-[14px] bg-[#F4F6FA] p-3.5">
+      {groups.map((g) => (
+        <div key={g.name}>
+          <div className="mb-1.5 text-[13px] font-bold text-[#2F3A4D]">{g.name}</div>
+          <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            {g.items.map(([label, done]) => (
+              <li key={label} className="flex items-center gap-2.5 rounded-[10px] bg-white px-3 py-2 text-[15px] shadow-[0_0_0_1px_#E1E5EC]">
+                <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md ${done ? "bg-[#0E6E66] text-white" : "shadow-[inset_0_0_0_1.5px_#B8C1CE]"}`}>
+                  {done && <IconCheck className="h-3.5 w-3.5" />}
+                </span>
+                <span className={done ? "text-[#4A5568] line-through" : "text-[#111827]"}>{label}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
 
-function PreviewTransit({ text }) {
+function MiniNotes() {
+  const notes = [
+    { title: "Hotel check-in", body: "Front desk on the 3rd floor. Check-in from 3 PM; bags can be left earlier." },
+    { title: "Kyoto restaurant options", body: "Pontocho for dinner, Nishiki Market for lunch. Most places take cash only." },
+  ];
   return (
-    <div style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
-      <div style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ width: 1, background: "#e5e5e3", flex: 1 }} />
-        <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#ccc", flexShrink: 0 }} />
-        <div style={{ width: 1, background: "#e5e5e3", flex: 1 }} />
-      </div>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "4px 0" }}>
-        <span style={{ fontSize: 11, color: "#888", background: "#f5f5f4", border: "0.5px solid #e5e5e3", borderRadius: 20, padding: "3px 10px", display: "inline-flex", alignItems: "center", gap: 4 }}>
-          → {text}
-        </span>
-      </div>
+    <div className="flex flex-col gap-2 rounded-[14px] bg-[#F4F6FA] p-3.5">
+      {notes.map((n) => (
+        <div key={n.title} className="rounded-[10px] bg-white px-3.5 py-3 shadow-[0_0_0_1px_#E1E5EC]">
+          <div className="text-[15px] font-bold text-[#111827]">{n.title}</div>
+          <p className="m-0 mt-1 text-sm leading-[1.5] text-[#2F3A4D]">{n.body}</p>
+        </div>
+      ))}
     </div>
   );
 }
 
-function TripDayPreview() {
+function MiniPlan() {
   return (
-    <div style={{ padding: "16px 0px 12px" }}>
-      {/* Day divider */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <div style={{ flex: 1, height: 1, background: "#378ADD" }} />
-        <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", background: "#378ADD", borderRadius: 20, padding: "4px 12px", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
-          ▶ Day 1 · Wed Sep 3 — Arrival &amp; Shinjuku
-          <span style={{ fontSize: 10, background: "rgba(255,255,255,0.25)", borderRadius: 20, padding: "1px 6px" }}>Today</span>
-        </span>
-        <div style={{ flex: 1, height: 1, background: "#378ADD" }} />
-      </div>
-
-      {DAY1_STOPS.map((stop, i) => {
-        const isLast = i === DAY1_STOPS.length - 1;
+    <div className="flex flex-col gap-2 rounded-[14px] bg-[#F4F6FA] p-3.5">
+      {SAMPLE_DAY.slice(0, 3).map((it) => {
+        const T = TYPES[it.type];
+        const Icon = T.icon;
         return (
-          <div key={stop.id}>
-            <PreviewStopCard stop={stop} isLast={isLast} />
-            {!isLast && stop.travelNext && <PreviewTransit text={stop.travelNext} />}
+          <div key={it.id} className="flex items-center gap-3 rounded-[10px] bg-white px-3 py-2.5 shadow-[0_0_0_1px_#E1E5EC]">
+            <i className="grid h-8 w-8 shrink-0 place-items-center rounded-lg" style={{ background: T.cb, color: T.c }}><Icon className="h-4 w-4" /></i>
+            <span className="min-w-0 flex-1">
+              <b className="block truncate text-[15px] font-bold text-[#111827]">{it.name}</b>
+              <span className="text-[13px] text-[#4A5568]">{t12(it.start)}</span>
+            </span>
           </div>
         );
       })}
-
-      {/* + Add stop to Day 1 */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 8, marginTop: 8,
-        padding: "7px 10px",
-        background: "#f9f9f8",
-        border: "0.5px dashed #ccccca", borderRadius: 10,
-      }}>
-        <span style={{ fontSize: 12, color: "#888", flexShrink: 0 }}>+ Day 1</span>
-        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-          {(["✈ Transport", "⌂ Hotel", "◎ Place", "⊕ Restaurant"]).map((label) => (
-            <span key={label} style={{
-              fontSize: 11, padding: "3px 9px", borderRadius: 20,
-              border: "0.5px solid #e5e5e3", background: "#fff",
-              color: "#888",
-            }}>{label}</span>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
 
-function HowItWorks() {
-  const [setRef, visible] = useVisible(0.08);
-  return (
-    <section id="how-it-works" ref={setRef} style={{ padding: "100px 24px", background: t.bg }}>
-      <style>{`@media (max-width: 600px) { .stop-gutter { display: none !important; } .stop-chevron { display: none !important; } .stop-budget { display: none !important; } }`}</style>
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+const AREAS = [
+  { icon: IconDay, title: "Day-by-day plan", body: "Everything you’ll do, in order: where to be, when to be there, and what it costs.", preview: <MiniPlan /> },
+  { icon: IconList, title: "Checklist", body: "What to sort out before you leave, grouped by documents, money, clothing, health, food and activities.", preview: <MiniChecklist /> },
+  { icon: IconNote, title: "Notes", body: "The research that doesn’t fit a time slot: local tips, options to consider, emergency info.", preview: <MiniNotes /> },
+];
 
-        {/* Centred heading + description */}
-        <div style={{
-          textAlign: "center", marginBottom: 48,
-          opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(20px)",
-          transition: "opacity .5s ease, transform .5s ease",
-        }}>
-          <h2 style={{
-            fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 800,
-            color: "#111", letterSpacing: "-1.8px", lineHeight: 1.1,
-            margin: "0 0 16px",
-            fontFamily: "Georgia, 'Times New Roman', serif",
-          }}>Up and running<br />in minutes.</h2>
-          <p style={{
-            fontSize: 17, color: "#666", lineHeight: 1.7,
-            maxWidth: 420, margin: "0 auto",
-          }}>
-            Add every stop, set budgets, attach links — your full day planned in one clean view.
+function Areas() {
+  return (
+    <section className="border-t border-[#E1E5EC] bg-white px-4 py-20 sm:px-6 lg:py-28">
+      <div className="mx-auto max-w-[1192px]">
+        <div className="mb-12 max-w-[640px]">
+          <h2 className="m-0 text-[32px] font-extrabold leading-[1.1] tracking-[-0.03em] text-[#111827] sm:text-[44px]">Three places for everything about the trip</h2>
+          <p className="mb-0 mt-4 text-lg leading-[1.6] text-[#2F3A4D]">
+            What you’ll do, what to prepare, and what you found out along the way are different kinds of information. Each gets its own place.
           </p>
         </div>
-
-        {/* Day 1 preview — no border */}
-        <div style={{
-          opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(24px)",
-          transition: "opacity .55s ease .1s, transform .55s ease .1s",
-        }}>
-          <div style={{ fontSize: 11, color: "#999", marginBottom: 8, fontWeight: 500, textAlign: "center" }}>
-            Tokyo Explorer · Day 1 preview
-          </div>
-          <TripDayPreview />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {AREAS.map((a) => {
+            const Icon = a.icon;
+            return (
+              <article key={a.title} className="flex min-w-0 flex-col rounded-[20px] bg-white p-5 shadow-[0_0_0_1px_#E1E5EC,0_12px_32px_rgba(17,24,39,.06)] sm:p-6">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#E3F2EF] text-[#0E6E66]"><Icon className="h-5 w-5" /></span>
+                <h3 className="mb-0 mt-4 text-[21px] font-extrabold tracking-[-0.015em] text-[#111827]">{a.title}</h3>
+                <p className="mb-5 mt-2 text-base leading-[1.55] text-[#2F3A4D]">{a.body}</p>
+                <div aria-hidden="true">{a.preview}</div>
+              </article>
+            );
+          })}
         </div>
-
       </div>
     </section>
   );
 }
 
+/* ---------- details ---------- */
+const DETAILS = [
+  { type: "transit", title: "Four kinds of stop", body: "Transit, stay, place and food, each with its own color, so a day reads at a glance." },
+  { type: "food", title: "Costs add up per day", body: "Set a budget on any stop. Every day shows its total and how many stops are still unpriced." },
+  { type: "place", title: "Links where you need them", body: "Tickets, reservations and maps sit on the stop they belong to, one tap away." },
+  { type: "stay", title: "Time between stops", body: "See the gap before the next stop, or write down how you’ll get there: “Metro, 25 min, $3”." },
+];
 
-// ─── CTA banner ───────────────────────────────────────────────────────────────
-
-function CTABanner({ onCTA }) {
-  const [setRef, visible] = useVisible(0.2);
+function Details() {
   return (
-    <section ref={setRef} style={{ padding: "60px 24px 80px" }}>
-      <div style={{
-        maxWidth: 720, margin: "0 auto", textAlign: "center",
-        background: GRAD, borderRadius: 24, padding: "56px 40px",
-        opacity: visible ? 1 : 0, transform: visible ? "scale(1)" : "scale(0.97)",
-        transition: "opacity .5s ease, transform .5s ease",
-      }}>
-        <h2 style={{
-          fontSize: 36, fontWeight: 700, color: "#fff",
-          letterSpacing: "-1px", marginBottom: 14,
-          fontFamily: "Georgia, 'Times New Roman', serif",
-        }}>Your next adventure starts here.</h2>
-        <p style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", marginBottom: 32, lineHeight: 1.6 }}>
-          Free forever for personal use. No credit card needed.
-        </p>
-        <button onClick={onCTA} style={{
-          fontSize: 15, padding: "13px 32px", 
-          borderRadius: 28, border: "none", background: "#fff", 
-          color: "#FF3838",
-          cursor: "pointer", fontFamily: "inherit", fontWeight: 700,
-        }}>Plan my first trip →</button>
+    <section className="px-4 py-20 sm:px-6 lg:py-28">
+      <div className="mx-auto grid max-w-[1192px] gap-12 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:gap-20">
+        <div>
+          <h2 className="m-0 text-[32px] font-extrabold leading-[1.1] tracking-[-0.03em] text-[#111827] sm:text-[44px]">Built to follow on the day</h2>
+          <p className="mb-0 mt-4 text-lg leading-[1.6] text-[#2F3A4D]">
+            No searching through messages, tabs and screenshots. Open the day and the next thing is right there.
+          </p>
+        </div>
+        <div className="grid gap-x-10 gap-y-9 sm:grid-cols-2">
+          {DETAILS.map((d) => {
+            const T = TYPES[d.type];
+            const Icon = T.icon;
+            return (
+              <div key={d.title}>
+                <span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: T.cb, color: T.c }}><Icon className="h-5 w-5" /></span>
+                <h3 className="mb-0 mt-4 text-[19px] font-extrabold tracking-[-0.01em] text-[#111827]">{d.title}</h3>
+                <p className="mb-0 mt-2 text-base leading-[1.55] text-[#2F3A4D]">{d.body}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
 
-// ─── Page root ────────────────────────────────────────────────────────────────
-
-export default function Landing({ onStart }) {
-
-    const handleStart = async () => {
-      await initDB();   // creates DB + sets localStorage flag
-      onStart();        // tells Main to switch to "app"
-    };
-
-    return (
-        <div style={{
-            minHeight: "100vh", background: t.bg,
-            fontFamily: "system-ui, -apple-system, sans-serif",
-        }}>
-            <SiteHeader onCTA={handleStart} />
-            <Hero onCTA={handleStart} />
-            <Features />
-            <HowItWorks />
-            <CTABanner onCTA={handleStart} />
-            <Footer />
+/* ---------- closing call to action ---------- */
+function CTABanner({ onStart }) {
+  return (
+    <section className="px-4 pb-20 sm:px-6 lg:pb-28">
+      <div className="mx-auto flex max-w-[1192px] flex-col items-start gap-8 rounded-3xl bg-[#111827] px-6 py-12 text-white sm:px-12 sm:py-14 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-[560px]">
+          <h2 className="m-0 text-[30px] font-extrabold leading-[1.1] tracking-[-0.03em] sm:text-[40px]">Your research is done. Give it one home.</h2>
+          <p className="mb-0 mt-3 text-lg leading-[1.6] text-[#D5DAE3]">Free for personal trips. No credit card needed.</p>
         </div>
-    );
+        <button 
+        type="button" 
+        onClick={onStart} 
+        className="h-[52px] shrink-0 rounded-[14px] bg-[linear-gradient(135deg,#7B6CF6_0%,#FF7E8A_50%,#FFC46B_100%)] text-[#111827] hover:brightness-[.93] px-7 text-base font-bold focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-white">
+          Start planning
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- page ---------- */
+export default function LandingPage({
+  onComplete
+}) {
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[#F4F6FA] font-['Schibsted_Grotesk',ui-sans-serif,system-ui,sans-serif] text-[#111827] antialiased">
+      <Header />
+      <main>
+        <Hero onComplete={onComplete} />
+        <Areas />
+        <Details />
+        <CTABanner onStart={onComplete} />
+      </main>
+      <Footer />
+    </div>
+  );
 }

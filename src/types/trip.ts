@@ -4,9 +4,7 @@ export type TripStatus = | "planning" | "ongoing" | "completed";
 
 export type TripMeta = {
     title: string;
-    //flag: string;
     destination: string;
-    //region: string;
     dateFrom: string;
     dateTo: string;
     travelers: number;
@@ -64,6 +62,7 @@ export type Note = {
     id: number; 
     title: string; 
     body: string; 
+    pin: boolean
 }
 
 export type Trip = {

@@ -20,10 +20,9 @@ export const SORT_OPTIONS = ["Date", "Name", "Budget", "Duration"] as const;
 export const FILTER_OPTIONS = ["All", "Ongoing", "Planning", "Completed" ] as const;
 
 export const STATUS_CONFIG = {
-    ongoing:   { label: "Ongoing", bg: "#EAF3DE", color: "#27500A" }, 
-    //upcoming:  { label: "Upcoming", bg: "#E6F1FB", color: "#0C447C" }, 
-    planning:  { label: "Planning",  bg: "#EEEDFE", color: "#3C3489" }, 
-    completed: { label: "Completed", bg: "#F1EFE8", color: "#5F5E5A" }, 
+    ongoing:   { label: "Ongoing", dot: "bg-[#0E6E66]" }, 
+    planning:  { label: "Planning", dot: "bg-[#E0A100]" }, 
+    completed: { label: "Completed", dot: 'bg-[#3AA873]' }, 
 };
 
 export const STOP_TYPE_CONFIG = {

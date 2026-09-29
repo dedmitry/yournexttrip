@@ -3,35 +3,22 @@ import { Link } from "react-router-dom";
 
 import Header from "@/components/PageHeader";
 import Footer from "@/components/PageFooter";
-import FilterBar from "@/components/FilterBar";
 import EmptyState from "@/components/EmptyState";
 import NewTripModal from "@/components/ModalNewTrip";
-import StopTypeIcon from "@/components/StopTypeIcon";
 import Rating from "@/components/Rating";
+import Perforation from "@/components/Perforation";
+import Fact from '@/components/TripFact'
+import { IconCalendar, IconSun, IconPeople, IconWallet } from "@/components/Icons";
+import { useToast } from "@/components/ToastMessage"
 
-import { Trip, TripSort, TripFilter } from "@/types/trip";
+import { Trip } from "@/types/trip";
 
 import { createTripShareUrl } from "@/utils/tripShare";
-import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops, formatBudget } from "@/utils/tripSummary";
+import { tripTripRange, calculateTripDays, totalTripBudget, countTripStops, formatBudget, plural } from "@/utils/tripSummary";
 import { saveTrip, getAllTrips, editTrip, deleteTrip as deleteTripDB } from "@utils/storage";
 
-import { t, chipStyle } from "@lib/styles";
-import { STATUS_CONFIG, STOP_TYPE_CONFIG } from "@lib/config";
+import { STATUS_CONFIG } from "@lib/config";
 
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function sortTrips(trips: Trip[], sort: TripSort): Trip[] {
-    return [...trips].sort((a, b) => {
-        if (sort === "Name")     return a.meta.title.localeCompare(b.meta.title);
-        //if (sort === "Budget")   return parseFloat(b.budget) - parseFloat(a.budget);
-        //if (sort === "Duration") return b.days - a.days;
-        return 0;
-    });
-}
-
-
-// ─── Item ─────────────────────────────────────────────────────────────
 
 function Item({ 
     trip, 
@@ -47,7 +34,7 @@ function Item({
     onEdit: (trip: Trip) => void;
     onDelete: (id: number) => void;
     onRate: (id: number, rating: number) => void;
-}) {1
+}) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const menuItems = [
@@ -60,59 +47,47 @@ function Item({
     ];
 
     const status = STATUS_CONFIG[trip.meta.status];
+    const past = trip.meta.dateTo
 
     const tripDays = calculateTripDays(trip.meta.dateFrom, trip.meta.dateTo);
     const tripStats = countTripStops(trip.stops);
     const totalBudget = totalTripBudget(trip.stops);
 
-    type StopType = keyof typeof STOP_TYPE_CONFIG;
 
     return (
-        <div
-            className="
-                flex flex-col overflow-visible 
-                border border-zinc-200 rounded-md 
-                
-                transition-colors duration-150 
-            "
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = t.borderMd)}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = t.border)}
-        >
-        <div style={{ background: t.bgSecondary, padding: "16px 16px 14px" }}>
-
-            {/* Top: stars + menu */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
-                <Rating
-                    rating={trip.meta.rating ?? undefined}
-                    onRate={(r) => onRate(trip.id, r)}
-                    interactive={trip.meta.status === "completed" || trip.meta.status === "ongoing"}
-                />
-
-                {/* Context menu */}
-                <div style={{ position: "relative", flexShrink: 0 }}>
+        <article className="relative flex flex-col rounded-[20px] bg-white shadow-[0_0_0_1px_#E1E5EC,0_12px_32px_rgba(17,24,39,.06)] transition -hover:-translate-y-0.5 -hover:shadow-[0_18px_40px_rgba(17,24,39,.1)] sm:rounded-3xl">
+            <div className="flex flex-col gap-2.5 px-[18px] pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-[22px]">
+                <div className="flex items-start justify-between gap-3">
+                    <div
+                        className="whitespace-nowrap overflow-hidden text-ellipsis text-left text-[21px] font-extrabold leading-[1.15] tracking-[-0.02em] text-[#111827] outline-none sm:text-2xl"
+                    >
+                        {trip.meta.title}
+                    </div>
                     <button
+                        type="button"
+                        aria-haspopup="menu"
+                        aria-expanded={menuOpen}
+                        aria-label={`Actions for ${trip.meta.title}`}
                         onClick={() => setMenuOpen((o) => !o)}
-                        style={{
-                            width: 26, height: 26, borderRadius: 6, cursor: "pointer",
-                            border: `0.5px solid ${t.border}`, background: t.bg,
-                            color: t.textHint, fontFamily: "inherit", fontSize: 14,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                        }}
-                    >···</button>
-
-                    {menuOpen && (
+                        className={`relative z-[2] -mr-2 -mt-1.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-[24px] font-semibold text-[#111827] transition ${
+                        menuOpen ? "border-[#E1E5EC] bg-[#F4F6FA]" : "border-transparent hover:border-[#E1E5EC] hover:bg-[#F4F6FA]"
+                        }`}
+                    >
+                        ···
+                    </button>
+                     {menuOpen && (
                         <div
                             onMouseLeave={() => setMenuOpen(false)}
                             style={{
                                 position: "absolute", top: 30, right: 0, zIndex: 20,
-                                background: t.bg, border: `0.5px solid ${t.border}`,
-                                borderRadius: t.radiusMd, padding: "4px 0", minWidth: 148,
+                                background: "var(--color-background-primary,   #ffffff)", border: `0.5px solid var(--color-border-tertiary, #e5e5e3)`,
+                                borderRadius: 12, padding: "4px 0", minWidth: 148,
                                 boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
                             }}
                         >
                             {menuItems.map((item, i) =>
                             item === null ? (
-                                <div key={i} style={{ height: 0.5, background: t.border, margin: "4px 0" }} />
+                                <div key={i} style={{ height: 0.5, background: "var(--color-border-tertiary, #e5e5e3)", margin: "4px 0" }} />
                             ) : (
                                 <button
                                 key={item.label}
@@ -121,11 +96,11 @@ function Item({
                                     display: "flex", alignItems: "center", gap: 8,
                                     width: "100%", padding: "7px 14px",
                                     background: "transparent", border: "none", cursor: "pointer",
-                                    fontSize: 13, fontFamily: "inherit",
-                                    color: item?.danger ? "#A32D2D" : t.text,
+                                    fontSize: 14, fontFamily: "inherit",
+                                    color: item?.danger ? "#A32D2D" : "var(--color-text-primary, #111111)",
                                     textAlign: "left",
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = item?.danger ? "#FCEBEB" : t.bgSecondary)}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = item?.danger ? "#FCEBEB" : "var(--color-background-secondary, #f9f9f8)")}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                                 >
                                 <span style={{ width: 14, textAlign: "center", flexShrink: 0 }}>{item.icon}</span>
@@ -136,86 +111,59 @@ function Item({
                         </div>
                     )}
                 </div>
+
+                <Rating
+                    rating={trip.meta.rating ?? undefined}
+                    onRate={(r) => onRate(trip.id, r)}
+                    interactive={trip.meta.status === "completed" || trip.meta.status === "ongoing"}
+                />
+        
+                <ul className="mt-1 grid grid-cols-2 gap-x-4 gap-y-2.5">
+                    <Fact icon={IconCalendar} srLabel="Dates">{tripTripRange(trip.meta.dateFrom, trip.meta.dateTo)}</Fact>
+                    <Fact icon={IconSun}>{plural(tripDays ?? 0, "day", "days")}</Fact>
+                    <Fact icon={IconPeople}>{plural(trip.meta.travelers, "traveler", "travelers")}</Fact>
+                    <Fact icon={IconWallet} srLabel="Budget">{formatBudget(totalBudget)}</Fact>
+                </ul>
             </div>
+        
+            <Perforation />
+        
+            <div className="flex items-center justify-between gap-3 px-[18px] pb-4 pt-3 sm:px-6 sm:pb-[18px] sm:pt-3.5">
+                {tripStats && tripStats.total > 0 ? (
+                <Link 
+                    to={`/trip/${trip.id}`}
+                    className="inline-flex items-center gap-1.5 text-[15px] font-bold text-[#1D5FD6]">
+                    Open plan →
+                </Link>
+                ) : (
+                <Link 
+                    to={`/trip/${trip.id}`}
+                    className="inline-flex items-center gap-1.5 text-[15px] font-bold text-[#1D5FD6]">
+                    Let’s start →
+                </Link>
+                )}
 
-            {/* Title */}
-            <div style={{
-                fontSize: 18, fontWeight: 500, color: t.text,
-                letterSpacing: "-0.3px", lineHeight: 1.25,
-                marginBottom: 10,
-                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-            }}>{trip.meta.title}</div>
-
-            {/* Meta chips */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-                <span style={chipStyle}>📅 {tripTripRange(trip.meta.dateFrom, trip.meta.dateTo)}</span>
-                <span style={chipStyle}>⏱ {tripDays} days</span>
-                {trip.meta.destination &&
-                <span style={chipStyle}>📍 {trip.meta.destination}</span>
-                }
-                <span style={chipStyle}>👥 {trip.meta.travelers}</span>
-                <span style={chipStyle}>💰 {formatBudget(totalBudget)}</span>
+                <span
+                    className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-bold ${
+                        past ? "bg-[#F2F7F4] text-[#2F3A4D]" : "bg-[#F4F6FA] text-[#111827]"
+                    }`}
+                >
+                    <i className={`h-2 w-2 rounded-full ${status.dot}`} />
+                    {status.label}
+                </span>
             </div>
-
-            {/* Stop-type stats — mirrors TripHeaderCard */}
-            <div style={{
-            display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-            borderTop: `1px solid ${t.borderWhite}`, paddingTop: 12, gap: 0,
-            }}>
-            {(Object.keys(STOP_TYPE_CONFIG) as StopType[]).map((type, i, arr) => {
-                const cfg = STOP_TYPE_CONFIG[type];
-                return (
-                <div key={type} style={{
-                    textAlign: "center",
-                    borderRight: i < arr.length - 1 ? `1px solid ${t.borderWhite}` : "none",
-                    padding: "0 4px",
-                }}>
-                    <div style={{ fontSize: 17, fontWeight: 500, color: t.text }}>{tripStats[type]}</div>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, fontSize: 10, color: t.textMuted, marginTop: 2 }}>
-                    <StopTypeIcon label={cfg.label} /> {cfg.label}
-                    </div>
-                </div>
-                );
-            })}
-            </div>
-        </div>
-
-        {/* Footer: status + open */}
-        <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "10px 16px", borderTop: `0.5px solid ${t.border}`,
-            background: t.bg, borderRadius: `0 0 ${t.radiusMd}px ${t.radiusMd}px`,
-        }}>
-            <span style={{
-            fontSize: 11, fontWeight: 500, borderRadius: 20, padding: "3px 10px",
-            background: status.bg, color: status.color,
-            }}>{status.label}</span>
-            <Link 
-                to={`/trip/${trip.id}`} 
-                style={{
-                    fontSize: 12, padding: "5px 14px", borderRadius: 20,
-                    border: `0.5px solid ${t.borderMd}`, background: "transparent",
-                    color: t.text, cursor: "pointer", fontFamily: "inherit",
-                    fontWeight: 500,
-                }}
-            >Open →</Link>
-        </div>
-        </div>
+        </article>
     );
 }
 
 
-// ─── Page root ────────────────────────────────────────────────────────────────
-
 export default function MyTrips() {
     const [loading, setLoading] = useState<boolean>(true);
-    const [trips, setTrips]           = useState<Trip[]>([]);
-
-    const [filter, setFilter] = useState<TripFilter>("All");
-    const [sort, setSort] = useState<TripSort>("Date");
-    const [search, setSearch] = useState<string>("");
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [trip, setTrip] = useState<Trip | null>(null)
 
     const [showModal, setShowModal]   = useState<boolean>(false);
+    const [showToast, , toastNode] = useToast();
 
 
     useEffect(() => {
@@ -227,10 +175,25 @@ export default function MyTrips() {
 
 
     const createTrip = async (trip: Trip) => {
+        console.log(trip)
         await saveTrip(trip);
         setTrips((prev) => [trip, ...prev])
+        showToast(`“${trip.meta.title}” created`);
     };
 
+
+    const changeTrip = async (trip: Trip) => {
+        await editTrip(trip.id, trip);
+        setTrips((prev) => prev.map((t) => t.id === trip.id ? trip : t));
+        showToast(`“${trip.meta.title}” changed`);
+    };
+
+
+
+    const handleEditTrip = async (trip: Trip) => {
+        setTrip(trip)
+        setShowModal(true)
+    };
 
     const handleDuplicateTrip = async (trip: Trip) => {
         const copy = { 
@@ -250,14 +213,23 @@ export default function MyTrips() {
         navigator.clipboard.writeText(createTripShareUrl(trip));
     };
 
-    const handleEditTrip = async (trip: Trip) => {
-        await editTrip(trip.id, trip);
-        setTrips((prev) => prev.map((t) => t.id === trip.id ? trip : t));
-    };
+    const handleDeleteTrip = async (id: number) => {
+        const index = trips.findIndex((t) => t.id === id);
+        const removed = trips[index];
+        if (!removed) return;
 
-    const deleteTrip = async (id: number) => {
         await deleteTripDB(id);
         setTrips((prev) => prev.filter((t) => t.id !== id))
+
+        showToast(`“${removed.meta.title}” deleted`, async () => {
+            await saveTrip(removed);
+            setTrips((prev) => {
+                if (prev.some((t) => t.id === removed.id)) return prev;
+                const next = [...prev];
+                next.splice(Math.min(index, next.length), 0, removed);
+                return next;
+            });
+        });
     };
 
     const rateTrip = async (id: number, rating: number) => {
@@ -267,15 +239,6 @@ export default function MyTrips() {
         await saveTrip(updated);
         setTrips((prev) => prev.map((t) => t.id === id ? updated : t));
     };
-
-    const filtered = sortTrips(
-        trips.filter((trip) => {
-            const matchesFilter = filter === "All" ||  trip.meta.status.charAt(0).toUpperCase() + trip.meta.status.slice(1) === filter;
-            const matchesSearch = !search || trip.meta.title.toLowerCase().includes(search.toLowerCase()) || trip.meta.destination.toLowerCase().includes(search.toLowerCase());
-            return matchesFilter && matchesSearch;
-        }),
-        sort
-    );
 
 
     if (loading) {
@@ -287,76 +250,81 @@ export default function MyTrips() {
     }
 
     return (
-        <div
-            className="min-h-screen flex flex-col"
-            style={{ background: t.bg }}
-        >
+        <div className="
+            flex min-h-screen min-h-[100dvh] flex-col 
+            bg-[#F4F6FA] 
+            font-['Schibsted_Grotesk',_'Segoe_UI',_system-ui,_sans-serif] text-[#111827] antialiased
+        ">
             <Header />
 
-            <main className="flex-1 flex flex-col w-full max-w-[1120px] mx-auto px-3 py-6">
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-                    <h1 style={{
-                        fontSize: 26, fontWeight: 800, 
-                        //fontFamily: "Georgia, 'Times New Roman', serif", 
-                        color: t.text, letterSpacing: "-0.4px", 
-                        margin: 0,
-                    }}>My Trips</h1>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        style={{
-                            fontSize: 13, padding: "6px 14px", borderRadius: 20,
-                            border: "none", background: t.accentGrad,
-                            color: t.bg, cursor: "pointer", fontFamily: "inherit",
-                        }}
-                    >+ New trip</button>
-                </div>
+            <div className="
+                flex flex-1 flex-col
+                bg-[#F4F6FA] 
+                font-['Schibsted_Grotesk',_'Segoe_UI',_system-ui,_sans-serif] text-[#111827] antialiased [font-variant-numeric:tabular-nums]
+            ">
+                <main className="
+                    mx-auto flex w-full max-w-[1240px] 
+                    flex-1 flex-col 
+                    px-3 pb-10 pt-5 sm:px-6 sm:pb-14 sm:pt-7
+                ">
+                    {trips.length === 0 ? (
+                        <EmptyState 
+                            onNew={() => setShowModal(true)} 
+                        /> 
+                    ) : (
+                    <>
+                        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                            <h1 className="m-0 text-[32px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[40px]">
+                                My trips
+                            </h1>
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(true)}
+                                className="
+                                    inline-flex h-[46px] w-full min-w-[160px] sm:w-auto 
+                                    items-center justify-center gap-2 
+                                    rounded-[14px] 
+                                    bg-[linear-gradient(135deg,#BD75C0_0%,#FF7E8A_50%,#FFA17A_100%)] 
+                                    text-[15px] font-extrabold text-white [text-shadow:0_1px_2px_rgba(60,30,80,.4)] shadow-[0_8px_22px_rgba(255,126,138,.38)] transition 
+                                    hover:-translate-y-px hover:brightness-105 hover:saturate-[1.1] hover:shadow-[0_12px_28px_rgba(255,126,138,.48)] 
+                                    focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#0E6E66] 
+                                    px-5 
+                                "
+                            >
+                                + New trip
+                            </button>
+                        </div>
 
-                {filtered.length === 0 ? (
-                <EmptyState 
-                    onNew={() => setShowModal(true)} 
-                /> 
-                ) : (
-                <>
-                    <FilterBar
-                        countTrips={trips.length}
-                        activeFilter={filter} 
-                        onFilter={setFilter}
-                        activeSort={sort}     
-                        onSort={setSort}
-                        search={search}       
-                        onSearch={setSearch}
-                    />
-
-                    <div style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                        gap: 14,
-                    }}>
-                        {filtered.map((trip) => (
-                        <Item
-                            key={trip.id}
-                            trip={trip}
-                            onDuplicate={handleDuplicateTrip}
-                            onShareTrip={handleShareTrip}
-                            onEdit={handleEditTrip}
-                            onDelete={deleteTrip}
-                            onRate={rateTrip}
-                        />
-                        ))}
-                    </div>
-                </>
-                )}
-
-            </main>
+                        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-5">
+                            {trips.map((trip) => (
+                            <Item
+                                key={trip.id}
+                                trip={trip}
+                                onDuplicate={handleDuplicateTrip}
+                                onShareTrip={handleShareTrip}
+                                onEdit={handleEditTrip}
+                                onDelete={handleDeleteTrip}
+                                onRate={rateTrip}
+                            />
+                            ))}
+                        </div>
+                    </>
+                    )}
+                </main>
+            </div>
 
             <Footer />
 
             {showModal && (
-                <NewTripModal 
-                    onSave={createTrip} 
-                    onClose={() => setShowModal(false)} 
-                />
+            <NewTripModal 
+                trip={trip}
+                onSave={createTrip} 
+                onEdit={changeTrip}
+                onClose={() => setShowModal(false)} 
+            />
             )}
+
+            {toastNode}
         </div>
     );
 }

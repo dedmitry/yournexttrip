@@ -24,7 +24,7 @@ export default function StarRating({
                 onMouseEnter={() => interactive && setHovered(star)}
                 onMouseLeave={() => interactive && setHovered(null)}
                 style={{
-                    fontSize: 13,
+                    fontSize: 16,
                     color: star <= active ? "#F5A623" : t.borderMd,
                     cursor: interactive ? "pointer" : "default",
                     transition: "color .1s",
