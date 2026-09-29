@@ -19,6 +19,9 @@ import { plural } from "@/utils/tripSummary";
 import { Note } from "@/types/trip";
 
 
+    const section =
+        "flex flex-col gap-3.5 border-b border-[#E1E5EC] py-5 last:border-b-0";
+
 type NotePanelProps = {
   note: Note;
   isNew: boolean;
@@ -120,7 +123,7 @@ function NotePanel({
           </button>
         </header>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-5 sm:px-[22px]">
+        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-[18px] py-2 sm:px-[22px]">
           <label className="flex flex-col gap-1.5">
             <span className={label}>Title</span>
 
@@ -149,38 +152,51 @@ function NotePanel({
               placeholder="Addresses, instructions, ideas, anything you want to keep"
             />
           </label>
-        </div>
 
-        <footer className="
-          flex items-center gap-2.5 
-          border-t border-[#E1E5EC] 
-          bg-white 
-          pl-[18px] pr-3.5 pt-3 sm:pb-4 sm:pl-[22px] sm:pr-[18px] sm:pt-3.5   pb-[36px] md:pb-4">
+
             {!isNew && (
-                <button
-                type="button"
-                onClick={() => onDelete(note.id)}
-                className="inline-flex h-11 items-center gap-[7px] rounded-xl border border-[#F3C4BE] bg-[#FFF5F4] px-4 text-sm font-bold text-[#B42318] hover:border-[#B42318] hover:bg-[#FDE8E5]"
-                >
-                <IconTrash className="h-4 w-4" />
-                Delete
-                </button>
+            <section
+              className={section}
+              aria-labelledby="h-trip"
+            >
+                  <button
+                  type="button"
+                  onClick={() => onDelete(note.id)}
+                  className="
+                      inline-flex h-11 
+                      flex items-center justify-center gap-[7px] 
+                      rounded-xl border border-[#F3C4BE] hover:border-[#B42318] 
+                      bg-[#FFF5F4] hover:bg-[#FDE8E5] 
+                      text-sm font-bold text-[#B42318] 
+                      px-4 
+                  ">
+                  <IconTrash className="h-4 w-4" />Delete
+                  </button>
+                </section>
             )}
 
-            <span className="flex-1" />
+          
+        </div>
+
+        <footer 
+            className="
+                flex items-center -gap-2.5 
+                border-t border-[#E1E5EC] 
+                bg-white  
+                px-[18px] sm:px-[22px]  pt-3 sm:pt-3.5   pb-10 md:pb-5 sm:pb-5
+            "
+        >
             <button 
                 type="button" 
                 onClick={onClose} 
                 className="
-                    w-[160px]
-                    inline-flex h-11 
-                    items-center justify-center gap-[7px] 
+                    w-[100%] h-[52px]  
                     rounded-xl 
-                    bg-[#111827] hover:bg-black 
-                    text-[15px] font-bold text-white 
-                    px-[22px] 
-                ">
-                <IconCheck className="h-4 w-4 text-[#13795B]" /> Done
+                    bg-[#111827] 
+                    text-[15px] font-bold text-white hover:bg-black
+                    px-[22px] "
+            >
+                Done
             </button>
         </footer>
       </aside>

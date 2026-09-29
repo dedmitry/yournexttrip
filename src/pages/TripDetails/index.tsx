@@ -6,7 +6,7 @@ import Footer from "@/components/PageFooter";
 import NewTripModal from "@/components/ModalNewTrip";
 import { useToast } from "@/components/ToastMessage"
 import SectionSummary from "./section-summary";
-import SectionPlanner from "./section-planner";
+import SectionPlanner from "./tab-planner";
 import ChecklistTab from "./tab-checklist";
 import NotesTab from "./tab-notes";
 

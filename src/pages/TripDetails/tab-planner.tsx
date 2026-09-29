@@ -713,19 +713,14 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
               <textarea rows={3} className={`${field} h-auto min-h-[84px] resize-y py-3 leading-normal`} value={it.notes} onChange={(e) => onChange({ notes: e.target.value })} placeholder="Reminders, confirmation numbers, tips" />
             </label>
           </section>
-        </div>
 
-        <footer 
-          className="
-            flex items-center gap-2.5 
-            border-t border-[#E1E5EC] 
-            bg-white pl-[18px] pr-3.5 pt-3 sm:pb-4 sm:pl-[22px] sm:pr-[18px] sm:pt-3.5   pb-[36px] md:pb-4">
+          <section className={section}>
             <button 
                 type="button" 
                 onClick={() => onDelete(it.id)} 
                 className="
                     inline-flex h-11 
-                    items-center gap-[7px] 
+                    flex items-center justify-center gap-[7px] 
                     rounded-xl border border-[#F3C4BE] hover:border-[#B42318] 
                     bg-[#FFF5F4] hover:bg-[#FDE8E5] 
                     text-sm font-bold text-[#B42318] 
@@ -733,20 +728,28 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
                 ">
                 <IconTrash className="h-4 w-4" />Delete
             </button>
-            <span className="flex-1" />
+          </section>
+        </div>
+
+        <footer 
+            className="
+                flex items-center -gap-2.5 
+                border-t border-[#E1E5EC] 
+                bg-white  
+                px-[18px] sm:px-[22px]  pt-3 sm:pt-3.5   pb-10 md:pb-5 sm:pb-5
+            "
+        >
             <button 
                 type="button" 
                 onClick={onClose} 
                 className="
-                    w-[160px]
-                    inline-flex h-11 
-                    items-center justify-center gap-[7px] 
+                    w-[100%] h-[52px]  
                     rounded-xl 
-                    bg-[#111827] hover:bg-black 
-                    text-[15px] font-bold text-white 
-                    px-[22px] 
-                ">
-                <IconCheck className="h-4 w-4 text-[#13795B]" /> Done
+                    bg-[#111827] 
+                    text-[15px] font-bold text-white hover:bg-black
+                    px-[22px] "
+            >
+                Done
             </button>
         </footer>
       </aside>

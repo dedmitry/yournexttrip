@@ -528,24 +528,23 @@ export default function TripModal({
                     </div>
 
                     {/* Footer */}
-                    <footer className="flex items-center gap-2.5 border-t border-[#E1E5EC] bg-white  pl-[18px] pr-3.5 pt-3 sm:pb-4 sm:pl-[22px] sm:pr-[18px] sm:pt-3.5   pb-[36px] md:pb-4">
-                        <span className="flex-1" />
-
-                        <button
-                            type="button"
-                            onClick={requestClose}
-                            disabled={saving}
-                            className="h-10 rounded-xl border border-[#B8C1CE] bg-white px-3.5 text-sm font-semibold hover:border-[#2F3A4D] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            Cancel
-                        </button>
-
+                    <footer 
+                        className="
+                            flex items-center -gap-2.5 
+                            border-t border-[#E1E5EC] 
+                            bg-white  
+                            px-[18px] sm:px-[22px]  pt-3 sm:pt-3.5   pb-10 md:pb-5 sm:pb-5
+                        "
+                    >
                         <button
                             type="submit"
                             disabled={saving}
                             className="
-                                w-[160px]
-                                h-11 rounded-xl bg-[#111827] px-[22px] text-[15px] font-bold text-white hover:bg-black"
+                                w-[100%] h-[52px]  
+                                rounded-xl 
+                                bg-[#111827] 
+                                text-[15px] font-bold text-white hover:bg-black
+                                px-[22px] "
                         >
                             {trip ? "Save trip" : "Create trip"}
                         </button>
@@ -557,6 +556,17 @@ export default function TripModal({
 }
 
 /*
+                        <span className="flex-1" />
+
+                        <button
+                            type="button"
+                            onClick={requestClose}
+                            disabled={saving}
+                            className="h-10 rounded-xl border border-[#B8C1CE] bg-white px-3.5 text-sm font-semibold hover:border-[#2F3A4D] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            Cancel
+                        </button>
+
 {trip && (
     <button
         type="button"
