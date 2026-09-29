@@ -528,7 +528,7 @@ export default function TripModal({
                     </div>
 
                     {/* Footer */}
-                    <footer className="flex items-center gap-2.5 border-t border-[#E1E5EC] bg-white pb-[calc(12px+env(safe-area-inset-bottom,0px))] pl-[18px] pr-3.5 pt-3 sm:pb-4 sm:pl-[22px] sm:pr-[18px] sm:pt-3.5">
+                    <footer className="flex items-center gap-2.5 border-t border-[#E1E5EC] bg-white  pl-[18px] pr-3.5 pt-3 sm:pb-4 sm:pl-[22px] sm:pr-[18px] sm:pt-3.5   pb-[36px] md:pb-4">
                         <span className="flex-1" />
 
                         <button
@@ -543,7 +543,9 @@ export default function TripModal({
                         <button
                             type="submit"
                             disabled={saving}
-                            className="h-11 rounded-xl bg-[#111827] px-[22px] text-[15px] font-bold text-white hover:bg-black"
+                            className="
+                                w-[160px]
+                                h-11 rounded-xl bg-[#111827] px-[22px] text-[15px] font-bold text-white hover:bg-black"
                         >
                             {trip ? "Save trip" : "Create trip"}
                         </button>
