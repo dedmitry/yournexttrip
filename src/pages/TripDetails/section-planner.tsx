@@ -721,7 +721,7 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
           </button>
           <span className="flex-1" />
           <span className="inline-flex items-center gap-1.5 text-[13px] text-[#4A5568]"><IconCheck className="h-3.5 w-3.5 text-[#13795B]" />Saved</span>
-          <button type="button" onClick={onClose} className="h-11 rounded-xl bg-[#111827] px-[22px] text-[15px] font-bold text-white hover:bg-black">Done</button>
+          <button type="button" onClick={onClose} className="h-11 rounded-xl bg-[#111827] px-[22px] text-[15px] font-bold text-white hover:bg-black pb-[36px]">Done</button>
         </footer>
       </aside>
     </>
