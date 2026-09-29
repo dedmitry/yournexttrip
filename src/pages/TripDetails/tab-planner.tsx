@@ -676,7 +676,8 @@ style={{
     paddingTop: 0,
     paddingBottom: 0,
     boxSizing: "border-box",
-    textAlign: "left",
+      textAlign: "left",
+        textAlignLast: "left",
     WebkitAppearance: "none",
 }}
                         value={it.start} 
@@ -699,7 +700,8 @@ style={{
     paddingTop: 0,
     paddingBottom: 0,
     boxSizing: "border-box",
-    textAlign: "left",
+      textAlign: "left",
+        textAlignLast: "left",
     WebkitAppearance: "none",
 }}
                             onChange={(e) => onChange({ dur: Math.max(0, Number(e.target.value) || 0) })} 
