@@ -433,7 +433,8 @@ style={{
     paddingTop: 0,
     paddingBottom: 0,
     boxSizing: "border-box",
-    textAlign: "left",
+      textAlign: "left",
+        textAlignLast: "left",
     WebkitAppearance: "none",
 }}
                                         value={start}
@@ -464,7 +465,8 @@ style={{
     paddingTop: 0,
     paddingBottom: 0,
     boxSizing: "border-box",
-    textAlign: "left",
+      textAlign: "left",
+        textAlignLast: "left",
     WebkitAppearance: "none",
 }}
                                         value={end}
