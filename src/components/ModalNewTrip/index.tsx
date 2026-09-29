@@ -428,6 +428,11 @@ export default function TripModal({
                                         {...a11y("start")}
                                         className={`${fieldClass(!!errors.start)} block w-full min-w-0 max-w-full`}
                                             style={{
+                                                        height: "42px",
+        lineHeight: "42px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        boxSizing: "border-box",
         textAlign: "left",
         WebkitAppearance: "none",
     }}
