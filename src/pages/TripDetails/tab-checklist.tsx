@@ -616,7 +616,7 @@ const deleteItem = (item: CheckItem) => {
                       "--cb": category.cb,
                     } as React.CSSProperties
                   }
-                  className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-[var(--cb)] pl-2 pr-3 text-[13px] font-bold text-[var(--c)]"
+                  className="hidden md:inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-[var(--cb)] pl-2 pr-3 text-[13px] font-bold text-[var(--c)]"
                 >
                   <Icon className="h-4 w-4" />
                   {category.label}
