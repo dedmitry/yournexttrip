@@ -556,7 +556,8 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
         aria-modal="true"
         aria-labelledby="action-panel-title"
         style={{ "--c": T.c, "--cb": T.cb } as React.CSSProperties}
-        className={`fixed inset-0 z-50 flex flex-col overflow-hidden bg-white transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none
+        className={`
+            fixed inset-0 z-50 flex flex-col overflow-hidden bg-white transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none
           sm:inset-auto sm:bottom-3 sm:right-3 sm:top-3 sm:w-[min(500px,calc(100vw-24px))] sm:rounded-3xl sm:shadow-[0_0_0_1px_#E1E5EC,0_30px_80px_rgba(17,24,39,.22)]
           ${shown ? "translate-x-0 translate-y-0" : "translate-y-full sm:translate-y-0 sm:translate-x-[calc(100%+32px)]"}`}
       >
@@ -667,7 +668,7 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
                 <span className={label}>Start</span>
                 <input type="time" className={field} value={it.start} onChange={(e) => onChange({ start: e.target.value })} />
               </label>
-              <label className="col-span-2 flex flex-col gap-1.5 sm:col-span-1">
+              <label className="flex flex-col gap-1.5">
                 <span className={label}>Duration</span>
                 <span className="relative">
                   <input type="number" min="0" step="5" inputMode="numeric" placeholder="0" className={`${field} pr-[52px]`} value={it.dur || ""} onChange={(e) => onChange({ dur: Math.max(0, Number(e.target.value) || 0) })} />
