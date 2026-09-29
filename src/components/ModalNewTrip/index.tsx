@@ -426,7 +426,19 @@ export default function TripModal({
                                     <input
                                         type="date"
                                         {...a11y("start")}
-                                        className={`${fieldClass(!!errors.start)} min-w-0 w-full`}
+                                                    className="
+                block
+                w-full
+                min-w-0
+                h-11
+                rounded-lg
+                border
+                border-gray-300
+                bg-white
+                px-3
+                text-sm
+                text-gray-900
+            "
                                         value={start}
                                         onChange={change(setStart, "start", "end")}
                                     />
@@ -448,7 +460,19 @@ export default function TripModal({
                                     <input
                                         type="date"
                                         {...a11y("end")}
-                                        className={`${fieldClass(!!errors.end)} min-w-0 w-full`}
+                                                    className="
+                block
+                w-full
+                min-w-0
+                h-11
+                rounded-lg
+                border
+                border-gray-300
+                bg-white
+                px-3
+                text-sm
+                text-gray-900
+            "
                                         value={end}
                                         onChange={change(setEnd, "start", "end")}
                                     />
