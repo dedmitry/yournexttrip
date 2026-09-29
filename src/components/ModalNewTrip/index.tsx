@@ -415,7 +415,7 @@ export default function TripModal({
                             </h3>
 
                             <div className="grid grid-cols-2 items-start gap-3">
-                                <div className="flex flex-col gap-1.5">
+                                <div className="min-w-0 flex flex-col gap-1.5">
                                     <label
                                         htmlFor={fieldId("start")}
                                         className={label}
@@ -426,15 +426,9 @@ export default function TripModal({
                                     <input
                                         type="date"
                                         {...a11y("start")}
-                                        className={fieldClass(
-                                            !!errors.start
-                                        )}
+                                        className={`${fieldClass(!!errors.start)} min-w-0 w-full`}
                                         value={start}
-                                        onChange={change(
-                                            setStart,
-                                            "start",
-                                            "end"
-                                        )}
+                                        onChange={change(setStart, "start", "end")}
                                     />
 
                                     <FieldError
@@ -443,7 +437,7 @@ export default function TripModal({
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-1.5">
+                                <div className="min-w-0 flex flex-col gap-1.5">
                                     <label
                                         htmlFor={fieldId("end")}
                                         className={label}
@@ -454,15 +448,9 @@ export default function TripModal({
                                     <input
                                         type="date"
                                         {...a11y("end")}
-                                        className={fieldClass(
-                                            !!errors.end
-                                        )}
+                                        className={`${fieldClass(!!errors.end)} min-w-0 w-full`}
                                         value={end}
-                                        onChange={change(
-                                            setEnd,
-                                            "start",
-                                            "end"
-                                        )}
+                                        onChange={change(setEnd, "start", "end")}
                                     />
 
                                     <FieldError

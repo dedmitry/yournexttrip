@@ -664,17 +664,30 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
               </select>
             </label>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
-              <label className="flex flex-col gap-1.5">
-                <span className={label}>Start</span>
-                <input type="time" className={field} value={it.start} onChange={(e) => onChange({ start: e.target.value })} />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className={label}>Duration</span>
-                <span className="relative">
-                  <input type="number" min="0" step="5" inputMode="numeric" placeholder="0" className={`${field} pr-[52px]`} value={it.dur || ""} onChange={(e) => onChange({ dur: Math.max(0, Number(e.target.value) || 0) })} />
-                  <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[15px] text-[#4A5568]">min</span>
-                </span>
-              </label>
+                <label className="flex flex-col gap-1.5">
+                    <span className={label}>Start</span>
+                    <input 
+                        type="time" 
+                        className={field} 
+                        value={it.start} 
+                        onChange={(e) => onChange({ start: e.target.value })} 
+                    />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                    <span className={label}>Duration</span>
+                    <span className="relative">
+                        <input 
+                            type="number" 
+                            min="0" 
+                            step="5" 
+                            inputMode="numeric" 
+                            placeholder="0" 
+                            className={`${field} pr-[52px]`} value={it.dur || ""} 
+                            onChange={(e) => onChange({ dur: Math.max(0, Number(e.target.value) || 0) })} 
+                        />
+                        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[15px] text-[#4A5568]">min</span>
+                    </span>
+                </label>
             </div>
             {!it.start && <p className="m-0 rounded-[10px] bg-[#FFF1E3] px-3 py-2 text-sm text-[#A64A06]">Add a start time to place this action in the day.</p>}
             <label className="flex flex-col gap-1.5">
