@@ -414,15 +414,15 @@ export default function TripModal({
                                 When
                             </h3>
 
-                            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
-                                <div className="min-w-0 flex flex-col gap-1.5">
+<div className="grid grid-cols-2 gap-3">
+    <div className="min-w-0 overflow-hidden">
                                     <label
                                         htmlFor={fieldId("start")}
                                         className={label}
                                     >
                                         First day
                                     </label>
-
+<div className="mt-1.5 w-full min-w-0 overflow-hidden">
                                     <input
                                         type="date"
                                         {...a11y("start")}
@@ -430,21 +430,21 @@ export default function TripModal({
                                         value={start}
                                         onChange={change(setStart, "start", "end")}
                                     />
-
+</div>
                                     <FieldError
                                         id={errorId("start")}
                                         message={errors.start}
                                     />
                                 </div>
 
-                                <div className="min-w-0 flex flex-col gap-1.5">
+                                <div className="min-w-0 overflow-hidden">
                                     <label
                                         htmlFor={fieldId("end")}
                                         className={label}
                                     >
                                         Last day
                                     </label>
-
+<div className="mt-1.5 w-full min-w-0 overflow-hidden">
                                     <input
                                         type="date"
                                         {...a11y("end")}
@@ -452,7 +452,7 @@ export default function TripModal({
                                         value={end}
                                         onChange={change(setEnd, "start", "end")}
                                     />
-
+</div>
                                     <FieldError
                                         id={errorId("end")}
                                         message={errors.end}
