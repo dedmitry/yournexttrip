@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 
-import { IconClock, IconGrip, IconLink, IconOpen, IconClose, IconTrash, IconCheck } from "@/components/Icons";
+import { IconClock, IconGrip, IconLink, IconOpen, IconClose, IconTrash } from "@/components/Icons";
 
 import { TripStop, initialTripStop, TripMeta, StopId, StopType } from "@/types/trip";
 
@@ -50,7 +50,7 @@ const IconRoute = makeIcon(<><circle cx="6" cy="19" r="2" /><circle cx="18" cy="
 const TYPES: Record<ItemType, TypeDef> = {
   transit: { label: "Transit", c: "#2F5BD3", cb: "#E8EEFC", icon: IconTransit, subs: ["Flight", "Train", "Bus", "Metro", "Taxi", "Car", "Ferry", "Walk"] },
   stay: { label: "Stay", c: "#7A3FC4", cb: "#F1EAFB", icon: IconStay, subs: ["Hotel", "Apartment", "Hostel", "Guesthouse", "Camping"] },
-  place: { label: "Place", c: "#0E6E66", cb: "#E3F2EF", icon: IconPlace, subs: ["Museum", "Sight", "Park", "Beach", "Tour", "Shopping", "Activity"] },
+  place: { label: "Place", c: "#0E6E66", cb: "#E3F2EF", icon: IconPlace, subs: ["Landmarks", "ViewPoint", "Photo Spots", "Outdoor Activities", "Museum", "Local Store", "Market" ] },
   food: { label: "Food", c: "#B45309", cb: "#FDF0E1", icon: IconFood, subs: ["Restaurant", "Cafe", "Bar", "Street food", "Market"] },
 };
 const TYPE_KEYS = Object.keys(TYPES) as ItemType[];
@@ -271,73 +271,73 @@ function useToast() {
 
 /* ---------- plan: card ---------- */
 function ActionCard({ it, selected, dragging, onOpen, onGripDown }: {
-  it: Item;
-  selected: boolean;
-  dragging: boolean;
-  onOpen: () => void;
-  onGripDown: (e: React.PointerEvent<HTMLButtonElement>) => void;
-}) {
-  const T = TYPES[it.type];
-  const Icon = T.icon;
-  const s = toMin(it.start);
-  const e = endOf(it);
-  const dur = durOf(it);
-  return (
-    <article
-      data-card={String(it.id)}
-      style={{ "--c": T.c, "--cb": T.cb } as React.CSSProperties}
-      className={`relative mb-2.5 rounded-[14px] bg-white px-3 py-[11px] transition sm:px-4 sm:py-3 ${dragging ? "opacity-35" : ""} ${
-        selected ? "shadow-[0_0_0_2px_#0E6E66]" : "shadow-[0_0_0_1px_#B8C1CE] hover:bg-[#FAFBFD]"
-      }`}
-    >
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-        <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-bold text-[var(--c)]">
-          <i className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-[var(--cb)]"><Icon className="h-3 w-3" /></i>
-          {T.label}
-          {it.sub && <em className="font-medium not-italic text-[#4A5568]">/ {it.sub}</em>}
-        </span>
-        <span className="order-3 basis-full whitespace-nowrap text-[13px] text-[#2F3A4D] sm:order-none sm:basis-auto sm:border-l sm:border-[#B8C1CE] sm:pl-2.5">
-          {s !== null ? `${t12(s)}${dur && e !== null ? ` – ${t12(e)}` : ""}` : "No time"}
-          {dur > 0 && <span className="text-[#4A5568]"><span className="mx-1.5">·</span>{fmtD(dur)}</span>}
-        </span>
-        <span className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
-          {it.link && (
-            <a href={it.link} target="_blank" rel="noopener noreferrer" className="relative z-[2] inline-flex max-w-[160px] items-center gap-[5px] text-[13px] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline">
-              <IconLink className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{hostOf(it.link)}</span>
-            </a>
-          )}
-          <span className={`whitespace-nowrap text-[13px] ${hasCost(it.cost) ? "font-bold text-[#111827]" : "font-medium text-[#4A5568]"}`}>
-            <span className="sr-only">Budget </span>
-            {hasCost(it.cost) ? (Number(it.cost) === 0 ? "Free" : money(it.cost)) : "No price"}
-          </span>
-          <button
-            type="button"
-            aria-label={`Drag to move ${it.name || "action"}`}
-            title="Drag to move"
-            onPointerDown={onGripDown}
-            className="relative z-[2] -my-[5px] -mr-2.5 -ml-1 grid h-[30px] w-[30px] shrink-0 cursor-grab touch-none place-items-center rounded-lg text-[#AEB7C4] hover:bg-[#F4F6FA] hover:text-[#111827]"
-          >
-            <IconGrip />
-          </button>
-        </span>
-      </div>
-      {/* stretched button: the whole card opens the editor */}
-      <button
-        type="button"
-        onClick={onOpen}
-        className="mt-1 block text-left text-base font-bold leading-[1.3] text-[#111827] outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[14px] after:content-[''] focus-visible:after:outline focus-visible:after:outline-[3px] focus-visible:after:outline-offset-2 focus-visible:after:outline-[#0E6E66] sm:text-[17px]"
-      >
-        {it.name || "Untitled action"}
-      </button>
-      {it.details && <div title={it.details} className="mt-0.5 truncate text-sm leading-[1.45] text-[#2F3A4D]">{it.details}</div>}
-      {it.notes && (
-        <div title={it.notes} className="mt-0.5 truncate text-sm leading-[1.45] text-[#4A5568]">
-          <b className="font-semibold text-[#2F3A4D]">Note: </b>{it.notes}
+    it: Item;
+    selected: boolean;
+    dragging: boolean;
+    onOpen: () => void;
+    onGripDown: (e: React.PointerEvent<HTMLButtonElement>) => void;
+    }) {
+    const T = TYPES[it.type];
+    const Icon = T.icon;
+    const s = toMin(it.start);
+    const e = endOf(it);
+    const dur = durOf(it);
+    return (
+        <article
+            data-card={String(it.id)}
+            style={{ "--c": T.c, "--cb": T.cb } as React.CSSProperties}
+            className={`relative mb-2.5 rounded-[14px] bg-white px-3 py-[11px] transition sm:px-4 sm:py-3 ${dragging ? "opacity-35" : ""} ${
+                selected ? "shadow-[0_0_0_2px_#0E6E66]" : "shadow-[0_0_0_1px_#B8C1CE] hover:bg-[#FAFBFD]"
+            }`}
+        >
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap text-[14px] font-bold text-[var(--c)]">
+                <i className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-[var(--cb)]"><Icon className="h-3 w-3" /></i>
+                {T.label}
+                {it.sub && <em className="font-medium not-italic text-[#4A5568]">/ {it.sub}</em>}
+            </span>
+            <span className="order-3 basis-full whitespace-nowrap text-[14px] text-[#2F3A4D] sm:order-none sm:basis-auto sm:border-l sm:border-[#B8C1CE] sm:pl-2.5">
+            {s !== null ? `${t12(s)}${dur && e !== null ? ` – ${t12(e)}` : ""}` : "No time"}
+            {dur > 0 && <span className="text-[#4A5568]"><span className="mx-1.5">·</span>{fmtD(dur)}</span>}
+            </span>
+            <span className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
+            {it.link && (
+                <a href={it.link} target="_blank" rel="noopener noreferrer" className="relative z-[2] inline-flex max-w-[160px] items-center gap-[5px] text-[14px] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline">
+                <IconLink className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{hostOf(it.link)}</span>
+                </a>
+            )}
+            <span className={`whitespace-nowrap text-[14px] ${hasCost(it.cost) ? "font-bold text-[#111827]" : "font-medium text-[#4A5568]"}`}>
+                <span className="sr-only">Budget </span>
+                {hasCost(it.cost) ? (Number(it.cost) === 0 ? "Free" : money(it.cost)) : "No price"}
+            </span>
+            <button
+                type="button"
+                aria-label={`Drag to move ${it.name || "action"}`}
+                title="Drag to move"
+                onPointerDown={onGripDown}
+                className="relative z-[2] -my-[5px] -mr-2.5 -ml-1 grid h-[30px] w-[30px] shrink-0 cursor-grab touch-none place-items-center rounded-lg text-[#AEB7C4] hover:bg-[#F4F6FA] hover:text-[#111827]"
+            >
+                <IconGrip />
+            </button>
+            </span>
         </div>
-      )}
-    </article>
-  );
+        {/* stretched button: the whole card opens the editor */}
+        <button
+            type="button"
+            onClick={onOpen}
+            className="mt-1 block text-left text-base font-bold leading-[1.3] text-[#111827] outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[14px] after:content-[''] focus-visible:after:outline focus-visible:after:outline-[3px] focus-visible:after:outline-offset-2 focus-visible:after:outline-[#0E6E66] sm:text-[17px]"
+        >
+            {it.name || "Untitled action"}
+        </button>
+        {it.details && <div title={it.details} className="mt-0.5 truncate text-sm leading-[1.45] text-[#2F3A4D]">{it.details}</div>}
+        {it.notes && (
+            <div title={it.notes} className="mt-0.5 -truncate text-sm -leading-[1.45] text-[#4A5568]">
+                <b className="font-semibold text-[#2F3A4D]">Note: </b>{it.notes}
+            </div>
+        )}
+        </article>
+    );
 }
 
 
@@ -746,7 +746,7 @@ style={{
             </label>
             <label className="flex flex-col gap-1.5">
               <span className={label}>Notes</span>
-              <textarea rows={3} className={`${field} h-auto min-h-[84px] resize-y py-3 leading-normal`} value={it.notes} onChange={(e) => onChange({ notes: e.target.value })} placeholder="Reminders, confirmation numbers, tips" />
+              <textarea rows={5} className={`${field} h-auto min-h-[84px] resize-y py-3 leading-normal`} value={it.notes} onChange={(e) => onChange({ notes: e.target.value })} placeholder="Reminders, confirmation numbers, tips" />
             </label>
           </section>
 
