@@ -270,18 +270,26 @@ function useToast() {
 
 
 /* ---------- plan: card ---------- */
-function ActionCard({ it, selected, dragging, onOpen, onGripDown }: {
+function ActionCard({ 
+    it, 
+    selected, 
+    dragging, 
+    onOpen, 
+    onGripDown
+}: {
     it: Item;
     selected: boolean;
     dragging: boolean;
     onOpen: () => void;
     onGripDown: (e: React.PointerEvent<HTMLButtonElement>) => void;
-    }) {
+}) {
+
     const T = TYPES[it.type];
     const Icon = T.icon;
     const s = toMin(it.start);
     const e = endOf(it);
     const dur = durOf(it);
+
     return (
         <article
             data-card={String(it.id)}
@@ -322,15 +330,19 @@ function ActionCard({ it, selected, dragging, onOpen, onGripDown }: {
             </button>
             </span>
         </div>
-        {/* stretched button: the whole card opens the editor */}
+
         <button
             type="button"
             onClick={onOpen}
-            className="mt-1 block text-left text-base font-bold leading-[1.3] text-[#111827] outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[14px] after:content-[''] focus-visible:after:outline focus-visible:after:outline-[3px] focus-visible:after:outline-offset-2 focus-visible:after:outline-[#0E6E66] sm:text-[18px]"
+            className="mt-2 block text-left text-base font-bold leading-[1.3] text-[#111827] outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[14px] after:content-[''] focus-visible:after:outline focus-visible:after:outline-[3px] focus-visible:after:outline-offset-2 focus-visible:after:outline-[#0E6E66] sm:text-[18px]"
         >
             {it.name || "Untitled action"}
         </button>
-        {it.details && <div title={it.details} className="mt-0.5 truncate text-sm leading-[1.45] text-[#2F3A4D]">{it.details}</div>}
+
+        {it.details && <div title={it.details} className="mt-2 truncate text-sm leading-[1.45] text-[#2F3A4D]">
+            {it.details}
+        </div>}
+        
         {it.notes && (
             <div title={it.notes} className="mt-0.5 -truncate -text-sm -leading-[1.45] text-[#4A5568] text-[15px]">
                 <b className="font-semibold text-[#2F3A4D]">Note: </b>{it.notes}
@@ -1224,7 +1236,7 @@ export default function TripPlanner({
         <main className="flex min-w-0 flex-col gap-7">
           {days.map((d, i) => {
             const items = [...d.items].sort(byTime);
-            const unpriced = items.filter((x) => !hasCost(x.cost)).length;
+            //const unpriced = items.filter((x) => !hasCost(x.cost)).length;
             const target = drag?.target?.day === i ? drag.target : null;
             return (
               <section
@@ -1243,7 +1255,7 @@ export default function TripPlanner({
                     </span>
                     <span className="ml-auto text-right leading-[1.3]">
                       <b className="block text-[19px] font-extrabold sm:text-[22px]">{money(dayCost(d))}</b>
-                      <span className="text-base text-[#4A5568]">{plural(items.length, "action", "actions")}{unpriced ? `, ${unpriced} unpriced` : ""}</span>
+                      <span className="text-base text-[#4A5568]">{plural(items.length, "action", "actions")}</span>
                     </span>
                   </div>
                   <div aria-hidden="true" className="relative mt-3.5 h-1.5 overflow-hidden rounded-[3px] bg-[#F4F6FA]">
