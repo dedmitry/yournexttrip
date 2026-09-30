@@ -50,7 +50,7 @@ const IconRoute = makeIcon(<><circle cx="6" cy="19" r="2" /><circle cx="18" cy="
 const TYPES: Record<ItemType, TypeDef> = {
   transit: { label: "Transit", c: "#2F5BD3", cb: "#E8EEFC", icon: IconTransit, subs: ["Flight", "Train", "Bus", "Metro", "Taxi", "Car", "Ferry", "Walk"] },
   stay: { label: "Stay", c: "#7A3FC4", cb: "#F1EAFB", icon: IconStay, subs: ["Hotel", "Apartment", "Hostel", "Guesthouse", "Camping"] },
-  place: { label: "Place", c: "#0E6E66", cb: "#E3F2EF", icon: IconPlace, subs: ["Landmarks", "ViewPoint", "Photo Spots", "Outdoor Activities", "Museum", "Local Store", "Market" ] },
+  place: { label: "Place", c: "#0E6E66", cb: "#E3F2EF", icon: IconPlace, subs: ["Landmarks", "ViewPoint", "Photo Spots", "Outdoor", "Museum", "Local Store", "Market" ] },
   food: { label: "Food", c: "#B45309", cb: "#FDF0E1", icon: IconFood, subs: ["Restaurant", "Cafe", "Bar", "Street food", "Market"] },
 };
 const TYPE_KEYS = Object.keys(TYPES) as ItemType[];
