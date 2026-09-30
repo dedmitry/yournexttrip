@@ -311,8 +311,8 @@ function ActionCard({
             <span className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
             {it.link && (
                 <a href={it.link} target="_blank" rel="noopener noreferrer" className="relative z-[2] inline-flex max-w-[160px] items-center gap-[5px] text-[15px] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline">
-                <IconLink className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{hostOf(it.link)}</span>
+                    <IconLink className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">Link</span>
                 </a>
             )}
             <span className={`whitespace-nowrap text-[15px] ${hasCost(it.cost) ? "font-bold text-[#111827]" : "font-medium text-[#4A5568]"}`}>
@@ -334,17 +334,19 @@ function ActionCard({
         <button
             type="button"
             onClick={onOpen}
-            className="mt-2 block text-left text-base font-bold leading-[1.3] text-[#111827] outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[14px] after:content-[''] focus-visible:after:outline focus-visible:after:outline-[3px] focus-visible:after:outline-offset-2 focus-visible:after:outline-[#0E6E66] sm:text-[18px]"
+            className="mt-3 block text-left text-base font-bold leading-[1.3] text-[#111827] outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[14px] after:content-[''] focus-visible:after:outline focus-visible:after:outline-[3px] focus-visible:after:outline-offset-2 focus-visible:after:outline-[#0E6E66] sm:text-[18px]"
         >
             {it.name || "Untitled action"}
         </button>
 
-        {it.details && <div title={it.details} className="mt-2 truncate text-sm leading-[1.45] text-[#2F3A4D]">
-            {it.details}
-        </div>}
+        {it.details && (
+            <div className="mt-0.5 truncate leading-[1.45] text-[#2F3A4D]">
+                {it.details}
+            </div>
+        )}
         
         {it.notes && (
-            <div title={it.notes} className="mt-0.5 -truncate -text-sm -leading-[1.45] text-[#4A5568] text-[15px]">
+            <div className="mt-2 text-[15px] text-[#4A5568]">
                 <b className="font-semibold text-[#2F3A4D]">Note: </b>{it.notes}
             </div>
         )}
