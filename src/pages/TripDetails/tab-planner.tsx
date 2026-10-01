@@ -15,6 +15,7 @@ type Item = {
   dur: number; // minutes
   name: string;
   address: string;
+  toMap: string;
   details: string;
   cost: number | null;
   link: string;
@@ -182,6 +183,7 @@ export function stopsToDays(stops: TripStop[], meta: TripMeta): Day[] {
       dur: parseDuration(st.duration),
       name: st.name || "",
       address: st.address || "",
+      toMap: st.toMap || "",
       details: st.details || "",
       cost: parseBudget(st.budget),
       link: st.link || "",
@@ -211,7 +213,8 @@ export function daysToStops(days: Day[], prev: TripStop[] = []): TripStop[] {
         time: it.start || "",
         name: it.name || "",
         address: it.address || "",
-        details: it.address || "",
+        toMap: it.toMap || "",
+        details: it.details || "",
         link: it.link || "",
         budget: hasCost(it.cost) ? String(it.cost) : "",
         duration: it.dur ? fmtD(it.dur) : "",
@@ -348,19 +351,34 @@ function ActionCard({
             </button>
 
             {it.address && (
+                <div className="mt-0.5 flex">
                 <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.address)}`}
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="relative z-[2] mt-0.5 block truncate leading-[1.45] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline"
+                    className="relative z-[2] inline-block leading-[1.45] truncate font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline"
                 >
                     {it.address}
                 </a>
+                </div>
             )}
 
-            {it.address && (
+            {it.toMap && (
+                <div className="mt-0.5 flex">
+                <a
+                    href={it.toMap}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="relative z-[2] inline-block leading-[1.45] truncate font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline"
+                >
+                    View on Maps
+                </a>
+                </div>
+            )}
+
+            {it.details && (
                 <div className="mt-0.5 truncate leading-[1.45] text-[#2F3A4D]">
-                    {it.address}
+                    {it.details}
                 </div>
             )}
             
@@ -765,12 +783,22 @@ style={{
                 />
             </label>
             <label className="flex flex-col gap-1.5">
+              <span className={label}>View on Maps</span>
+              <input 
+                className={field} 
+                value={it.toMap} 
+                onChange={(e) => onChange({ toMap: e.target.value })} 
+                placeholder="Link to map"
+                autoComplete="off" 
+                />
+            </label>
+            <label className="flex flex-col gap-1.5">
               <span className={label}>Details</span>
               <textarea 
                 rows={2} 
                 className={`${field} h-auto min-h-[84px] resize-y py-3 leading-normal`} 
-                value={it.address} 
-                onChange={(e) => onChange({ address: e.target.value })} 
+                value={it.details} 
+                onChange={(e) => onChange({ details: e.target.value })} 
                 
             />
             </label>
@@ -987,7 +1015,7 @@ export default function TripPlanner({
     const day = list[d];
     const ends = day.items.map(endOf).filter((x): x is number => x !== null);
     const st = Math.min(1380, Math.ceil((ends.length ? Math.max(...ends) : 540) / 15) * 15);
-    const it: Item = { id: makeId(list), type, sub: "", start: fmtT(st), dur: type === "transit" ? 30 : 60, name: "", address: "",  details: "", cost: null, link: "", notes: "", travelNext: "" };
+    const it: Item = { id: makeId(list), type, sub: "", start: fmtT(st), dur: type === "transit" ? 30 : 60, name: "", address: "",  details: "", toMap: "", cost: null, link: "", notes: "", travelNext: "" };
     update(withItems(list, d, [...day.items, it]));
     setSel(it.id);
   };
@@ -1096,6 +1124,7 @@ export default function TripPlanner({
             name: "",
             address: "",
             details: "",
+            toMap: "",
             cost: null,
             link: "",
             notes: "",

@@ -30,6 +30,7 @@ export type TripStop = {
     time: string;
     name: string;
     address: string;
+    toMap: string;
     details: string;
     link: string;
     budget: string;
@@ -46,6 +47,7 @@ export const initialTripStop: TripStop = {
     time: "",
     name: "New stop",
     address: "",
+    toMap: "",
     details: "",
     link: "",
     budget: "",
