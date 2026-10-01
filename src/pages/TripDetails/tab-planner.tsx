@@ -14,6 +14,7 @@ type Item = {
   start: string; // "HH:MM" or ""
   dur: number; // minutes
   name: string;
+  address: string;
   details: string;
   cost: number | null;
   link: string;
@@ -180,6 +181,7 @@ export function stopsToDays(stops: TripStop[], meta: TripMeta): Day[] {
       start: parseTime(st.time),
       dur: parseDuration(st.duration),
       name: st.name || "",
+      address: st.address || "",
       details: st.details || "",
       cost: parseBudget(st.budget),
       link: st.link || "",
@@ -208,7 +210,8 @@ export function daysToStops(days: Day[], prev: TripStop[] = []): TripStop[] {
         subtype: it.sub || "",
         time: it.start || "",
         name: it.name || "",
-        details: it.details || "",
+        address: it.address || "",
+        details: it.address || "",
         link: it.link || "",
         budget: hasCost(it.cost) ? String(it.cost) : "",
         duration: it.dur ? fmtD(it.dur) : "",
@@ -310,7 +313,12 @@ function ActionCard({
                 </span>
                 <span className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
                 {it.link && (
-                    <a href={it.link} target="_blank" rel="noopener noreferrer" className="relative z-[2] inline-flex max-w-[160px] items-center gap-[5px] text-[15px] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline">
+                    <a 
+                        href={it.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="relative z-[2] inline-flex max-w-[160px] items-center gap-[5px] text-[15px] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline"
+                    >
                         <IconLink className="h-3.5 w-3.5 shrink-0" />
                         <span className="truncate">Link</span>
                     </a>
@@ -339,9 +347,20 @@ function ActionCard({
                 {it.name || "Untitled action"}
             </button>
 
-            {it.details && (
+            {it.address && (
+                <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.address)}`}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="relative z-[2] mt-0.5 block truncate leading-[1.45] font-semibold text-[#1D5FD6] no-underline hover:text-[#174CAB] hover:underline"
+                >
+                    {it.address}
+                </a>
+            )}
+
+            {it.address && (
                 <div className="mt-0.5 truncate leading-[1.45] text-[#2F3A4D]">
-                    {it.details}
+                    {it.address}
                 </div>
             )}
             
@@ -736,14 +755,37 @@ style={{
           <section className={section}>
             <h3 className={heading}>Where</h3>
             <label className="flex flex-col gap-1.5">
-              <span className={label}>Address or details</span>
-              <textarea rows={2} className={`${field} h-auto min-h-[84px] resize-y py-3 leading-normal`} value={it.details} onChange={(e) => onChange({ details: e.target.value })} />
+              <span className={label}>Address</span>
+              <input 
+                className={field} 
+                value={it.name} 
+                onChange={(e) => onChange({ name: e.target.value })} 
+                placeholder="Street address, city, state"
+                autoComplete="off" 
+                />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className={label}>Details</span>
+              <textarea 
+                rows={2} 
+                className={`${field} h-auto min-h-[84px] resize-y py-3 leading-normal`} 
+                value={it.address} 
+                onChange={(e) => onChange({ address: e.target.value })} 
+                
+            />
             </label>
             <div className="flex flex-col gap-1.5">
               <span className={label}>Link</span>
               <div className="grid grid-cols-[minmax(0,1fr)_46px] overflow-hidden rounded-xl border border-transparent bg-[#F4F6FA] transition hover:border-[#B8C1CE] focus-within:border-[#0E6E66] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#E3F2EF]">
                 <input aria-label="Link address" type="url" placeholder="https://" value={it.link} onChange={(e) => onChange({ link: e.target.value.trim() })} className="h-11 min-w-0 bg-transparent px-3.5 outline-none" />
-                <a href={it.link || undefined} target="_blank" rel="noopener noreferrer" aria-label="Open link" aria-disabled={!it.link} className={`grid place-items-center border-l border-[#B8C1CE] ${it.link ? "text-[#1D5FD6] hover:bg-[#E8EEFC]" : "pointer-events-none text-[#B8C1CE]"}`}>
+                <a 
+                    href={it.link || undefined} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label="Open link" 
+                    aria-disabled={!it.link} 
+                    className={`grid place-items-center border-l border-[#B8C1CE] ${it.link ? "text-[#1D5FD6] hover:bg-[#E8EEFC]" : "pointer-events-none text-[#B8C1CE]"}`}
+                >
                   <IconOpen className="h-4 w-4" />
                 </a>
               </div>
@@ -945,7 +987,7 @@ export default function TripPlanner({
     const day = list[d];
     const ends = day.items.map(endOf).filter((x): x is number => x !== null);
     const st = Math.min(1380, Math.ceil((ends.length ? Math.max(...ends) : 540) / 15) * 15);
-    const it: Item = { id: makeId(list), type, sub: "", start: fmtT(st), dur: type === "transit" ? 30 : 60, name: "", details: "", cost: null, link: "", notes: "", travelNext: "" };
+    const it: Item = { id: makeId(list), type, sub: "", start: fmtT(st), dur: type === "transit" ? 30 : 60, name: "", address: "",  details: "", cost: null, link: "", notes: "", travelNext: "" };
     update(withItems(list, d, [...day.items, it]));
     setSel(it.id);
   };
@@ -1052,6 +1094,7 @@ export default function TripPlanner({
             start: "09:00",
             dur: 60,
             name: "",
+            address: "",
             details: "",
             cost: null,
             link: "",

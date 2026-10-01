@@ -29,6 +29,7 @@ export type TripStop = {
     subtype: string;
     time: string;
     name: string;
+    address: string;
     details: string;
     link: string;
     budget: string;
@@ -44,6 +45,7 @@ export const initialTripStop: TripStop = {
     subtype: "Activities",
     time: "",
     name: "New stop",
+    address: "",
     details: "",
     link: "",
     budget: "",
