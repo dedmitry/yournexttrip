@@ -8,19 +8,19 @@ import { TripStop, initialTripStop, TripMeta, StopId, StopType } from "@/types/t
 /* ---------- types ---------- */
 type ItemType = "transit" | "stay" | "place" | "food";
 type Item = {
-  id: StopId;
-  type: ItemType;
-  sub: string;
-  start: string; // "HH:MM" or ""
-  dur: number; // minutes
-  name: string;
-  address: string;
-  toMap: string;
-  details: string;
-  cost: number | null;
-  link: string;
-  notes: string;
-  travelNext: string;
+    id: StopId;
+    type: ItemType;
+    sub: string;
+    start: string; // "HH:MM" or ""
+    duration: string;
+    name: string;
+    address: string;
+    toMap: string;
+    details: string;
+    cost: number | null;
+    link: string;
+    notes: string;
+    travelNext: string;
 };
 type Day = { items: Item[] };
 type DropTarget = { day: number; beforeId: string | null };
@@ -94,12 +94,12 @@ const t12 = (m: number) => {
   const h = Math.floor(m / 60);
   return `${h % 12 || 12}:${String(m % 60).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
-const fmtD = (m: number) => {
+/*const fmtD = (m: number) => {
   if (!m || m <= 0) return "";
   const h = Math.floor(m / 60), r = m % 60;
   return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r} min`;
-};
-const durOf = (it: Item) => Number(it.dur) || 0;
+};*/
+const durOf = (it: Item) => Number(it.duration) || 0;
 /** End minute of an item, or null when it has no start time. */
 const endOf = (it: Item): number | null => {
   const s = toMin(it.start);
@@ -180,7 +180,7 @@ export function stopsToDays(stops: TripStop[], meta: TripMeta): Day[] {
       type: normType(st.type),
       sub: st.subtype || "",
       start: parseTime(st.time),
-      dur: parseDuration(st.duration),
+      duration: st.duration || "",
       name: st.name || "",
       address: st.address || "",
       toMap: st.toMap || "",
@@ -217,7 +217,7 @@ export function daysToStops(days: Day[], prev: TripStop[] = []): TripStop[] {
         details: it.details || "",
         link: it.link || "",
         budget: hasCost(it.cost) ? String(it.cost) : "",
-        duration: it.dur ? fmtD(it.dur) : "",
+        duration: it.duration || "",
         travelNext: it.travelNext || "",
         notes: it.notes || "",
       });
@@ -310,9 +310,8 @@ function ActionCard({
                     {T.label}
                     {it.sub && <em className="font-medium not-italic text-[#4A5568]">/ {it.sub}</em>}
                 </span>
-                <span className="order-3 basis-full whitespace-nowrap text-[15px] text-[#2F3A4D] sm:order-none sm:basis-auto sm:border-l sm:border-[#B8C1CE] sm:pl-2.5">
-                    {s !== null ? `${t12(s)}${dur && e !== null ? ` – ${t12(e)}` : ""}` : "No time"}
-                    {dur > 0 && <span className="text-[#4A5568]"><span className="mx-1.5">·</span>{fmtD(dur)}</span>}
+                <span className="order-3 basis-full whitespace-nowrap text-[15px] text-[#2F3A4D] sm:order-none sm:basis-auto">
+                    {it.duration && <span className="text-[#4A5568]"><span className="mr-1.5">·</span>{it.duration}</span>}
                 </span>
                 <span className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
                 {it.link && (
@@ -563,7 +562,7 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
   const TIcon = T.icon;
   const custom = !!it.sub && !T.subs.includes(it.sub);
   const startMin = toMin(it.start);
-  const endValue = startMin !== null && it.dur ? fmtT((startMin + it.dur) % 1440) : "";
+  //const endValue = startMin !== null && it.dur ? fmtT((startMin + it.dur) % 1440) : "";
 
   /* mount: slide in and focus the name — runs once */
   useEffect(() => {
@@ -584,11 +583,11 @@ function ActionPanel({ it, dayIndex, dayCount, dayLabel, dayOptionLabel, onChang
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const setEnd = (v: string) => {
+  /*const setEnd = (v: string) => {
     const e = toMin(v);
     if (!v || e === null || startMin === null) return onChange({ dur: 0 });
     onChange({ dur: (e - startMin + 1440) % 1440 }); // an end before the start means "next day"
-  };
+  };*/
 
   const field = "h-[46px] w-full rounded-xl border border-transparent bg-[#F4F6FA] px-3.5 text-base text-[#111827] transition placeholder:text-[#8A94A6] hover:border-[#B8C1CE] focus:border-[#0E6E66] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#E3F2EF] disabled:cursor-not-allowed disabled:opacity-60";
   const label = "text-[13px] font-semibold text-[#2F3A4D]";
@@ -740,23 +739,21 @@ style={{
                     <span className={label}>Duration</span>
                     <span className="relative">
                         <input 
-                            type="number" 
-                            min="0" 
-                            step="5" 
-                            inputMode="numeric" 
-                            placeholder="0" 
-                            className={`${field} pr-[52px]`} value={it.dur || ""} 
-style={{
-    height: "46px",
-    lineHeight: "46px",
-    paddingTop: 0,
-    paddingBottom: 0,
-    boxSizing: "border-box",
-      textAlign: "left",
-        textAlignLast: "left",
-    WebkitAppearance: "none",
-}}
-                            onChange={(e) => onChange({ dur: Math.max(0, Number(e.target.value) || 0) })} 
+                            type="text" 
+                            placeholder="e.g. 1 h 30 min" 
+                            className={`${field} pr-[52px]`} 
+                            value={it.duration || ""} 
+                            style={{
+                                height: "46px",
+                                lineHeight: "46px",
+                                paddingTop: 0,
+                                paddingBottom: 0,
+                                boxSizing: "border-box",
+                                textAlign: "left",
+                                    textAlignLast: "left",
+                                WebkitAppearance: "none",
+                            }}
+                            onChange={(e) => onChange({ duration: e.target.value })} 
                         />
                         <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[15px] text-[#4A5568]">min</span>
                     </span>
@@ -1015,7 +1012,7 @@ export default function TripPlanner({
     const day = list[d];
     const ends = day.items.map(endOf).filter((x): x is number => x !== null);
     const st = Math.min(1380, Math.ceil((ends.length ? Math.max(...ends) : 540) / 15) * 15);
-    const it: Item = { id: makeId(list), type, sub: "", start: fmtT(st), dur: type === "transit" ? 30 : 60, name: "", address: "",  details: "", toMap: "", cost: null, link: "", notes: "", travelNext: "" };
+    const it: Item = { id: makeId(list), type, sub: "", start: fmtT(st), duration: "", name: "", address: "",  details: "", toMap: "", cost: null, link: "", notes: "", travelNext: "" };
     update(withItems(list, d, [...day.items, it]));
     setSel(it.id);
   };
@@ -1120,7 +1117,7 @@ export default function TripPlanner({
             type: "place",
             sub: "",
             start: "09:00",
-            dur: 60,
+            duration: "",
             name: "",
             address: "",
             details: "",
