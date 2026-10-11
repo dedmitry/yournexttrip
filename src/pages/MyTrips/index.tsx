@@ -162,7 +162,7 @@ export default function MyTrips() {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [trip, setTrip] = useState<Trip | null>(null)
 
-    const [showModal, setShowModal]   = useState<boolean>(false);
+    const [showModal, setShowModal] = useState<boolean>(false);
     const [showToast, , toastNode] = useToast();
 
 
@@ -175,7 +175,6 @@ export default function MyTrips() {
 
 
     const createTrip = async (trip: Trip) => {
-        console.log(trip)
         await saveTrip(trip);
         setTrips((prev) => [trip, ...prev])
         showToast(`“${trip.meta.title}” created`);

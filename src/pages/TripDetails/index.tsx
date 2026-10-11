@@ -54,7 +54,7 @@ export default function TripDetail() {
 
         const decoded = decodeTrip(shared);
         if (!decoded) return;
-
+alert(decoded)
         importedRef.current = true;
 
         const importedTrip: Trip = {
@@ -69,9 +69,9 @@ export default function TripDetail() {
         saveTrip(importedTrip);
         setTrip(importedTrip);
 
-        navigate(`/trip/${importedTrip.id}`, {
+        /*navigate(`/trip/${importedTrip.id}`, {
             replace: true,
-        });
+        });*/
 
     }, [loaded, searchParams, navigate]);
 
