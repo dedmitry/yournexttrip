@@ -59,48 +59,16 @@ export default function TripDetail() {
 
     // Check for shared trip in URL on load
     const shared = searchParams.get("trip");
- 
-useEffect(() => {
-    setDebugInfo("1. Effect started");
+    
+    useEffect(() => {
+        setDebugInfo(shared ?? "No trip parameter");
+        if (!loaded || importedRef.current || !shared) return;
 
-    if (!loaded) {
-        setDebugInfo("2. Waiting for database loading");
-        return;
-    }
+        const decoded = decodeTrip(shared);
+        if (!decoded) return;
 
-    if (id !== "shared") {
-        setDebugInfo(`3. Unexpected route ID: ${id}`);
-        return;
-    }
+        importedRef.current = true;
 
-    if (!shared) {
-        setDebugInfo(
-            `4. No trip parameter. URL: ${window.location.href}`
-        );
-        return;
-    }
-
-    setDebugInfo(`5. Found shared data: ${shared.length} characters`);
-
-    let decoded;
-
-    try {
-        decoded = decodeTrip(shared);
-    } catch (error) {
-        setDebugInfo(
-            `6. Decode threw an error: ${
-                error instanceof Error ? error.message : String(error)
-            }`
-        );
-        return;
-    }
-
-    if (!decoded) {
-        setDebugInfo("7. decodeTrip returned null/undefined");
-        return;
-    }
-
-    setDebugInfo(`8. Decoded trip: ${decoded.meta.title}`);
         const importedTrip: Trip = {
             ...decoded,
             id: Date.now(),
