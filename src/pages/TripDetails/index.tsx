@@ -61,7 +61,17 @@ export default function TripDetail() {
     const shared = searchParams.get("trip");
     
     useEffect(() => {
-        setDebugInfo(shared ?? "No trip parameter");
+    setDebugInfo(
+        JSON.stringify({
+            href: window.location.href,
+            pathname: window.location.pathname,
+            routeId: id,
+            hasTripParameter: shared !== null,
+            parameterLength: shared?.length ?? 0,
+            parameterPreview: shared?.slice(0, 80) ?? null,
+            loaded,
+        }, null, 2)
+    );
         if (!loaded || importedRef.current || !shared) return;
 
         const decoded = decodeTrip(shared);
