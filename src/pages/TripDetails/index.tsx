@@ -39,41 +39,35 @@ export default function TripDetail() {
 
     // Load from DB on mount
     useEffect(() => {
-        if (!tripId) { setLoaded(true); return; }
+        // Shared trips are loaded from the URL, not the database.
+        if (id === "shared") {
+            setLoaded(true);
+            return;
+        }
 
-        getTrip(tripId)
-            .then((trip: Trip | undefined) => {
-                if (trip) setTrip(trip);
-            }).finally(() => setLoaded(true));
-    }, [tripId]);
+        if (!id || !Number.isFinite(Number(id))) {
+            setLoaded(true);
+            return;
+        }
+
+        getTrip(Number(id))
+            .then((savedTrip: Trip | undefined) => {
+                if (savedTrip) setTrip(savedTrip);
+            })
+            .finally(() => setLoaded(true));
+    }, [id]);
 
     // Check for shared trip in URL on load
+    const shared = searchParams.get("trip");
+    
     useEffect(() => {
-        //if (!loaded || importedRef.current) return;
-
-        const shared = searchParams.get("trip");
-            setDebugInfo(
-        JSON.stringify({
-            loaded,
-            tripId,
-            hasSharedTrip: !!shared,
-            sharedLength: shared?.length ?? 0,
-            alreadyImported: importedRef.current,
-        }, null, 2)
-    );
-        if (!shared) return;
+        if (!loaded || importedRef.current || !shared) return;
 
         const decoded = decodeTrip(shared);
-
-            setDebugInfo(
-        JSON.stringify({
-            loaded,
-            hasSharedTrip: true,
-            decoded: !!decoded,
-            title: decoded?.meta?.title ?? null,
-        }, null, 2)
-    );
-        if (!decoded) return;
+        if (!decoded) {
+            setDebugInfo("Could not decode shared trip.");
+            return;
+        }
 
         importedRef.current = true;
 
@@ -93,7 +87,7 @@ export default function TripDetail() {
             replace: true,
         });*/
 
-    }, [loaded, searchParams, navigate]);
+    }, [loaded, shared, navigate]);
 
 
     // Debounced autosave
