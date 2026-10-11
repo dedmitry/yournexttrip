@@ -54,7 +54,7 @@ export default function TripDetail() {
 
         const decoded = decodeTrip(shared);
         if (!decoded) return;
-alert(decoded)
+alert(decoded.meta.title)
         importedRef.current = true;
 
         const importedTrip: Trip = {
