@@ -35,6 +35,8 @@ export default function TripDetail() {
     const [showToast, , toastNode] = useToast();
 
 
+    const [debugInfo, setDebugInfo] = useState("Waiting...");
+
     // Load from DB on mount
     useEffect(() => {
         if (!tripId) { setLoaded(true); return; }
@@ -47,14 +49,32 @@ export default function TripDetail() {
 
     // Check for shared trip in URL on load
     useEffect(() => {
-        if (!loaded || importedRef.current) return;
+        //if (!loaded || importedRef.current) return;
 
         const shared = searchParams.get("trip");
+            setDebugInfo(
+        JSON.stringify({
+            loaded,
+            tripId,
+            hasSharedTrip: !!shared,
+            sharedLength: shared?.length ?? 0,
+            alreadyImported: importedRef.current,
+        }, null, 2)
+    );
         if (!shared) return;
-alert('Go')
+
         const decoded = decodeTrip(shared);
+
+            setDebugInfo(
+        JSON.stringify({
+            loaded,
+            hasSharedTrip: true,
+            decoded: !!decoded,
+            title: decoded?.meta?.title ?? null,
+        }, null, 2)
+    );
         if (!decoded) return;
-alert(decoded.meta.title)
+
         importedRef.current = true;
 
         const importedTrip: Trip = {
@@ -202,7 +222,18 @@ alert(decoded.meta.title)
                 onDelete={handleDeleteTrip}
                 onRate={handleRateTrip}
             />
-
+<pre
+    style={{
+        padding: 16,
+        margin: 16,
+        background: "#fff",
+        color: "#111",
+        whiteSpace: "pre-wrap",
+        overflowWrap: "anywhere",
+    }}
+>
+    {debugInfo}
+</pre>
             {activeTab === "plan" &&
             <SectionPlanner 
                 meta={trip.meta}
