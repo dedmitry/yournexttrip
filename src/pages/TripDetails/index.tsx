@@ -18,7 +18,6 @@ import { createTripShareUrl, decodeTrip } from "@/utils/tripShare";
 
 export default function TripDetail() {
     const { id } = useParams();
-    const tripId = Number(id);
 
 
     const [searchParams] = useSearchParams();
@@ -35,25 +34,21 @@ export default function TripDetail() {
     const [showToast, , toastNode] = useToast();
 
 
-    const [debugInfo, setDebugInfo] = useState("Waiting...");
-
-    // Load from DB on mount
+    // Load trip from DB on mount
     useEffect(() => {
-        // Shared trips are loaded from the URL, not the database.
-        if (id === "shared") {
+        const tripId = Number(id);
+
+        // Shared trips are loaded from the URL.
+        if (id === "shared" || !id || !Number.isFinite(tripId)) {
             setLoaded(true);
             return;
         }
 
-        if (!id || !Number.isFinite(Number(id))) {
-            setLoaded(true);
-            return;
-        }
-
-        getTrip(Number(id))
-            .then((savedTrip: Trip | undefined) => {
+        getTrip(tripId)
+            .then((savedTrip) => {
                 if (savedTrip) setTrip(savedTrip);
             })
+            .catch(console.error)
             .finally(() => setLoaded(true));
     }, [id]);
 
@@ -61,17 +56,6 @@ export default function TripDetail() {
     const shared = searchParams.get("trip");
     
     useEffect(() => {
-    setDebugInfo(
-        JSON.stringify({
-            href: window.location.href,
-            pathname: window.location.pathname,
-            routeId: id,
-            hasTripParameter: shared !== null,
-            parameterLength: shared?.length ?? 0,
-            parameterPreview: shared?.slice(0, 80) ?? null,
-            loaded,
-        }, null, 2)
-    );
         if (!loaded || importedRef.current || !shared) return;
 
         const decoded = decodeTrip(shared);
@@ -91,9 +75,9 @@ export default function TripDetail() {
         saveTrip(importedTrip);
         setTrip(importedTrip);
 
-        /*navigate(`/trip/${importedTrip.id}`, {
+        navigate(`/trip/${importedTrip.id}`, {
             replace: true,
-        });*/
+        });
 
     }, [loaded, shared, navigate]);
 
@@ -224,18 +208,7 @@ export default function TripDetail() {
                 onDelete={handleDeleteTrip}
                 onRate={handleRateTrip}
             />
-<pre
-    style={{
-        padding: 16,
-        margin: 16,
-        background: "#fff",
-        color: "#111",
-        whiteSpace: "pre-wrap",
-        overflowWrap: "anywhere",
-    }}
->
-    {debugInfo}
-</pre>
+
             {activeTab === "plan" &&
             <SectionPlanner 
                 meta={trip.meta}
