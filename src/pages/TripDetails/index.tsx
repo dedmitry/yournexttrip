@@ -51,7 +51,7 @@ export default function TripDetail() {
 
         const shared = searchParams.get("trip");
         if (!shared) return;
-
+alert('Go')
         const decoded = decodeTrip(shared);
         if (!decoded) return;
 alert(decoded.meta.title)
